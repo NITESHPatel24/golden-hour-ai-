@@ -22,6 +22,7 @@
       <li><a href="#problem">Problem</a></li>
       <li><a href="#how">How It Works</a></li>
       <li><a href="#features">Features</a></li>
+      <li><a href="#contacts">Contacts</a></li>
       <li><a href="#demo">Live Demo</a></li>
       <li><a href="#team">Team</a></li>
     </ul>
@@ -278,6 +279,81 @@
   </div>
 </section>
 
+<!-- ─────────── FAMILY CONTACTS ─────────── -->
+<section class="contacts-section" id="contacts">
+  <div class="container">
+    <div class="section-tag" data-aos>Emergency Network</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      Family <span class="accent-r">Emergency Contacts</span>
+    </h2>
+    <p class="section-sub" data-aos data-aos-delay="150">
+      Register up to 5 family members. When a crash is detected, they'll receive an instant SMS with your live GPS location.
+    </p>
+
+    <div class="contacts-wrap" data-aos data-aos-delay="200">
+      <!-- ADD CONTACT FORM -->
+      <div class="contacts-form-card">
+        <div class="cfc-title">
+          <span class="cfc-icon">👨‍👩‍👧</span>
+          <span>Add Emergency Contact</span>
+          <span class="contacts-badge" id="contactsCount">0</span>
+        </div>
+
+        <div class="cfc-fields">
+          <div class="cfc-field">
+            <label class="cfc-label">Contact Name</label>
+            <input
+              type="text"
+              id="contactName"
+              class="cfc-input"
+              placeholder="e.g. Mom, Rahul Bhai"
+              maxlength="40"
+            />
+          </div>
+          <div class="cfc-field">
+            <label class="cfc-label">Phone Number</label>
+            <input
+              type="tel"
+              id="contactPhone"
+              class="cfc-input"
+              placeholder="+91XXXXXXXXXX"
+              maxlength="16"
+            />
+          </div>
+        </div>
+
+        <button class="cfc-add-btn" id="addContactBtn" onclick="addContact()">
+          + Add Contact
+        </button>
+        <div class="contact-feedback" id="contactFeedback" style="display:none"></div>
+      </div>
+
+      <!-- CONTACTS LIST -->
+      <div class="contacts-list-card">
+        <div class="cfc-title">
+          <span class="cfc-icon">📲</span>
+          <span>Will Be Notified On Crash</span>
+        </div>
+        <div id="contactsList">
+          <div class="contact-empty">No emergency contacts added yet.</div>
+        </div>
+        <div class="sms-preview">
+          <div class="sms-preview-title">📱 SMS Preview</div>
+          <div class="sms-preview-body">
+            🚨 EMERGENCY ALERT — Golden Hour AI<br/>
+            Your family member was in a crash!<br/><br/>
+            📍 Location: maps.google.com/?q=...<br/>
+            🕐 Time: [incident time]<br/>
+            ⚠️ Severity: HIGH<br/>
+            🚑 Status: Ambulance Dispatched<br/>
+            ⏱ ETA: ~4 minutes
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ─────────── LIVE DEMO ─────────── -->
 <section class="demo-section" id="demo">
   <div class="container">
@@ -333,8 +409,16 @@
 
         <!-- CRASH BUTTON -->
         <button class="crash-trigger-btn" id="crashBtn" onclick="demoCrash()">
-          ⚠️ Simulate Crash
+          ⚠️ Simulate Crash (HIGH)
         </button>
+        <div style="display:flex;gap:10px;margin-top:8px">
+          <button class="crash-trigger-btn" style="background:rgba(255,149,0,.15);border-color:rgba(255,149,0,.4);color:var(--am);font-size:12px;padding:10px 14px" onclick="demoCrash('MEDIUM',5.2,45,4.8)">
+            ⚠ Simulate MEDIUM
+          </button>
+          <button class="crash-trigger-btn" style="background:rgba(0,232,122,.08);border-color:rgba(0,232,122,.25);color:var(--gr);font-size:12px;padding:10px 14px" onclick="handleCrashBySeverity(1.2,20,0.8)">
+            ✓ Simulate LOW
+          </button>
+        </div>
 
         <!-- ALERT LOG -->
         <div class="alert-log" id="alertLog">
@@ -497,7 +581,7 @@
   </div>
 </footer>
 
-<!-- SOS MODAL (for demo) -->
+<!-- SOS MODAL (upgraded with voice panel) -->
 <div class="sos-modal" id="sosModal">
   <div class="sos-modal-inner">
     <div class="sos-m-tag">⚠ CRASH DETECTED</div>
@@ -512,10 +596,33 @@
       </svg>
       <div class="sos-cd-num" id="sosCdNum">15</div>
     </div>
+
+    <!-- VOICE ASSISTANT PANEL -->
+    <div class="voice-panel" id="voicePanel" style="display:none">
+      <div class="voice-panel-header">
+        <div class="voice-mic-anim" id="voiceMicAnim">
+          <div class="vma-ring r1"></div>
+          <div class="vma-ring r2"></div>
+          <div class="vma-ring r3"></div>
+          <div class="vma-core">🎤</div>
+        </div>
+        <div class="voice-panel-label">AI Voice Assistant</div>
+      </div>
+      <div class="voice-status-text" id="voiceStatusText">Initializing voice assistant...</div>
+      <div class="voice-commands-hint">
+        <span class="vcmd vcmd-help">Say "HELP" → 🚑 Call Ambulance</span>
+        <span class="vcmd vcmd-safe">Say "I am safe" → ✅ Cancel Alert</span>
+      </div>
+      <div class="voice-btn-row">
+        <button class="voice-btn-help" onclick="handleVoiceCommand('help me')">🚨 HELP ME</button>
+        <button class="voice-btn-safe" onclick="handleVoiceCommand('i am safe')">✅ I AM SAFE</button>
+      </div>
+    </div>
+
     <button class="sos-safe-btn" onclick="cancelDemo()">
       🆘 I AM SAFE — Cancel
     </button>
-    <p class="sos-m-hint">Press above to cancel the alert</p>
+    <p class="sos-m-hint">Press above or say "I am safe" to cancel</p>
   </div>
 </div>
 <div class="sos-backdrop" id="sosBackdrop"></div>
