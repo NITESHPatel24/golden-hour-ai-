@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Hour AI — Every Second Counts</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+
+<!-- NOISE OVERLAY -->
+<div class="noise"></div>
+
+<!-- ─────────── NAV ─────────── -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <div class="nav-logo">⚡ GOLDEN HOUR AI</div>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#demo">Live Demo</a></li>
+      <li><a href="#team">Team</a></li>
+    </ul>
+    <button class="nav-cta" onclick="scrollToDemo()">Try Demo →</button>
+    <button class="hamburger" id="hamburger" onclick="toggleMenu()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#problem" onclick="toggleMenu()">Problem</a>
+    <a href="#how" onclick="toggleMenu()">How It Works</a>
+    <a href="#features" onclick="toggleMenu()">Features</a>
+    <a href="#demo" onclick="toggleMenu()">Live Demo</a>
+    <a href="#team" onclick="toggleMenu()">Team</a>
+  </div>
+</nav>
+
+<!-- ─────────── HERO ─────────── -->
+<section class="hero" id="home">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-content">
+    <div class="hero-badge" data-aos>
+      <span class="badge-dot"></span>
+      AI-Powered Emergency Response System
+    </div>
+
+    <h1 class="hero-title" data-aos data-aos-delay="100">
+      Every Second<br/>
+      <span class="title-accent">Counts.</span>
+    </h1>
+
+    <p class="hero-desc" data-aos data-aos-delay="200">
+      In India, <strong>1.5 lakh people</strong> die every year in road accidents —
+      not because medicine isn't available, but because help arrives too late.
+      Golden Hour AI changes that.
+    </p>
+
+    <div class="hero-actions" data-aos data-aos-delay="300">
+      <button class="btn-primary" onclick="scrollToDemo()">
+        <span>▶ See Live Demo</span>
+      </button>
+      <button class="btn-ghost" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
+        How It Works ↓
+      </button>
+    </div>
+
+    <div class="hero-stats" data-aos data-aos-delay="400">
+      <div class="hstat">
+        <div class="hstat-num">1.5L</div>
+        <div class="hstat-lbl">Deaths / Year</div>
+      </div>
+      <div class="hstat-div"></div>
+      <div class="hstat">
+        <div class="hstat-num">60</div>
+        <div class="hstat-lbl">Golden Minutes</div>
+      </div>
+      <div class="hstat-div"></div>
+      <div class="hstat">
+        <div class="hstat-num">&lt;10s</div>
+        <div class="hstat-lbl">Our Alert Time</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-visual" data-aos data-aos-delay="200">
+    <div class="phone-mockup">
+      <div class="phone-screen">
+        <div class="phone-status-bar">
+          <span>9:41</span><span>●●●</span>
+        </div>
+        <div class="phone-app">
+          <div class="phone-logo">⚡ GOLDEN HOUR AI</div>
+          <div class="phone-shield-wrap">
+            <div class="phone-ring r1"></div>
+            <div class="phone-ring r2"></div>
+            <div class="phone-ring r3"></div>
+            <div class="phone-core" id="phoneCore">
+              <span id="phoneEmoji">🛡️</span>
+              <span class="phone-status-lbl" id="phoneLbl">PROTECTED</span>
+            </div>
+          </div>
+          <div class="phone-sensor-row">
+            <div class="psensor">
+              <div class="psensor-lbl">Accel</div>
+              <div class="psensor-val" id="ps1">0.2g</div>
+            </div>
+            <div class="psensor">
+              <div class="psensor-lbl">Speed</div>
+              <div class="psensor-val" id="ps2">42km/h</div>
+            </div>
+            <div class="psensor">
+              <div class="psensor-lbl">GPS</div>
+              <div class="psensor-val" style="color:var(--gr)">Active</div>
+            </div>
+          </div>
+          <div class="phone-ai-strip">
+            <span class="phone-ai-dot"></span>
+            <span id="phoneAiMsg">Golden Hour AI monitoring...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-scroll-hint">
+    <div class="scroll-line"></div>
+    <span>Scroll to explore</span>
+  </div>
+</section>
+
+<!-- ─────────── PROBLEM ─────────── -->
+<section class="problem" id="problem">
+  <div class="container">
+    <div class="section-tag" data-aos>The Crisis</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      A System That<br/><span class="accent-r">Fails Every Day</span>
+    </h2>
+    <p class="section-sub" data-aos data-aos-delay="150">
+      The problem isn't the lack of hospitals or ambulances.<br/>
+      The problem is time — and a system that doesn't know how to use it.
+    </p>
+
+    <div class="problem-grid" data-aos data-aos-delay="200">
+      <div class="problem-card pc-red">
+        <div class="pc-icon">📞</div>
+        <div class="pc-title">Hold Music</div>
+        <p>Emergency callers wait 3–8 minutes on hold while seconds matter.</p>
+      </div>
+      <div class="problem-card pc-amber">
+        <div class="pc-icon">🗺️</div>
+        <div class="pc-title">Wrong Turns</div>
+        <p>Ambulances navigate without live traffic data, losing precious minutes.</p>
+      </div>
+      <div class="problem-card pc-blue">
+        <div class="pc-icon">🏥</div>
+        <div class="pc-title">Unprepared Hospitals</div>
+        <p>Doctors, blood, beds — none ready when the patient finally arrives.</p>
+      </div>
+    </div>
+
+    <div class="counter-band" data-aos data-aos-delay="300">
+      <div class="cband-item">
+        <div class="cband-num" data-count="150000">0</div>
+        <div class="cband-lbl">Road accident deaths in India per year</div>
+      </div>
+      <div class="cband-item">
+        <div class="cband-num" data-count="60">0</div>
+        <div class="cband-lbl">Minutes in the golden hour</div>
+      </div>
+      <div class="cband-item">
+        <div class="cband-num" data-count="50">0</div>
+        <div class="cband-lbl">% deaths preventable with faster response</div>
+      </div>
+      <div class="cband-item">
+        <div class="cband-num" data-count="8">0</div>
+        <div class="cband-lbl">Average minutes lost before first alert</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── HOW IT WORKS ─────────── -->
+<section class="how" id="how">
+  <div class="container">
+    <div class="section-tag" data-aos>The Solution</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      How <span class="accent-r">Golden Hour AI</span><br/>Works
+    </h2>
+
+    <div class="flow-track" data-aos data-aos-delay="200">
+      <div class="flow-step">
+        <div class="fs-num">01</div>
+        <div class="fs-icon">💥</div>
+        <div class="fs-title">Crash Detected</div>
+        <p class="fs-desc">Phone sensors detect sudden impact. Golden Hour AI analyzes severity in under 2 seconds.</p>
+        <div class="fs-tag">Accelerometer + AI</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-num">02</div>
+        <div class="fs-icon">🚑</div>
+        <div class="fs-title">Ambulance Dispatched</div>
+        <p class="fs-desc">Nearest ambulance is auto-alerted with crash location, fastest live-traffic route calculated.</p>
+        <div class="fs-tag">Google Maps + Twilio</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-num">03</div>
+        <div class="fs-icon">🏥</div>
+        <div class="fs-title">Hospital Pre-Alerted</div>
+        <p class="fs-desc">Hospital receives AI-generated medical brief — blood type, ETA, severity — before patient arrives.</p>
+        <div class="fs-tag">Golden Hour API + SMS</div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="fs-num">04</div>
+        <div class="fs-icon">✅</div>
+        <div class="fs-title">Life Saved</div>
+        <p class="fs-desc">Doctors, blood, and beds ready on arrival. The golden hour — preserved.</p>
+        <div class="fs-tag">Golden Hour Saved</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── FEATURES ─────────── -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="section-tag" data-aos>Capabilities</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      Built with <span class="accent-r">Real AI</span>,<br/>Not Just Code
+    </h2>
+
+    <div class="feat-grid" data-aos data-aos-delay="200">
+      <div class="feat-card fc-large">
+        <div class="fc-icon-wrap" style="background:rgba(255,32,32,.1)">💥</div>
+        <h3>Instant Crash Detection</h3>
+        <p>Phone accelerometer + gyroscope data analyzed by Claude AI every 100ms. Detects actual crashes vs normal bumps using configurable sensitivity thresholds.</p>
+        <div class="fc-tech">Claude API · Device Motion API</div>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon-wrap" style="background:rgba(255,149,0,.1)">🚑</div>
+        <h3>Smart Dispatch</h3>
+        <p>Auto-routes the nearest available ambulance using live Google Maps traffic data.</p>
+        <div class="fc-tech">Google Maps · Directions API</div>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon-wrap" style="background:rgba(59,130,246,.1)">🏥</div>
+        <h3>Hospital Pre-Alert</h3>
+        <p>AI generates a full medical brief — blood type, crash severity, ETA — sent to hospital before the patient arrives.</p>
+        <div class="fc-tech">Claude AI · Twilio SMS</div>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon-wrap" style="background:rgba(0,232,122,.1)">📍</div>
+        <h3>Live GPS Tracking</h3>
+        <p>Real-time location sharing with ambulance, hospital, and emergency contacts simultaneously.</p>
+        <div class="fc-tech">Geolocation API · Leaflet Maps</div>
+      </div>
+      <div class="feat-card">
+        <div class="fc-icon-wrap" style="background:rgba(168,85,247,.1)">👨‍👩‍👧</div>
+        <h3>Family Notification</h3>
+        <p>Emergency contacts auto-alerted via SMS with crash location and hospital details.</p>
+        <div class="fc-tech">Twilio · SendGrid</div>
+      </div>
+      <div class="feat-card fc-large">
+        <div class="fc-icon-wrap" style="background:rgba(255,32,32,.1)">⏱️</div>
+        <h3>Smart Cancel Timer</h3>
+        <p>False alarm? A configurable countdown (5–30s) lets users cancel before services are contacted. The big red "I AM SAFE" button is your safety net.</p>
+        <div class="fc-tech">Configurable · Zero false positives</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── LIVE DEMO ─────────── -->
+<section class="demo-section" id="demo">
+  <div class="container">
+    <div class="section-tag" data-aos>Interactive Demo</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      See It <span class="accent-r">In Action</span>
+    </h2>
+    <p class="section-sub" data-aos data-aos-delay="150">
+      Simulate a crash and watch the entire Golden Hour AI system respond in real time.
+    </p>
+
+    <div class="demo-wrap" data-aos data-aos-delay="200">
+      <!-- LEFT: CONTROLS -->
+      <div class="demo-controls">
+        <div class="demo-status-bar">
+          <div class="dsb-dot" id="dsbDot"></div>
+          <span id="dsbTxt">System Active — Monitoring</span>
+        </div>
+
+        <!-- SENSOR PANEL -->
+        <div class="sensor-panel">
+          <div class="sp-title">Live Sensor Feed</div>
+          <div class="sp-row">
+            <span class="sp-lbl">Accelerometer</span>
+            <div class="sp-bar-wrap"><div class="sp-bar" id="spb1" style="width:8%"></div></div>
+            <span class="sp-val" id="spv1">0.2g</span>
+          </div>
+          <div class="sp-row">
+            <span class="sp-lbl">Gyroscope</span>
+            <div class="sp-bar-wrap"><div class="sp-bar" id="spb2" style="width:6%;background:var(--gr)"></div></div>
+            <span class="sp-val" id="spv2">1.1°/s</span>
+          </div>
+          <div class="sp-row">
+            <span class="sp-lbl">Speed</span>
+            <div class="sp-bar-wrap"><div class="sp-bar" id="spb3" style="width:35%;background:var(--am)"></div></div>
+            <span class="sp-val" id="spv3">42 km/h</span>
+          </div>
+          <div class="sp-row">
+            <span class="sp-lbl">Impact</span>
+            <div class="sp-bar-wrap"><div class="sp-bar" id="spb4" style="width:5%"></div></div>
+            <span class="sp-val" id="spv4">0.1g</span>
+          </div>
+        </div>
+
+        <!-- AI MESSAGE -->
+        <div class="demo-ai-box">
+          <div class="demo-ai-hdr">
+            <div class="demo-ai-dot"></div>
+            <span>Claude AI</span>
+          </div>
+          <p id="demoAiMsg">All sensors within normal range. No crash detected. Emergency network standby.</p>
+        </div>
+
+        <!-- CRASH BUTTON -->
+        <button class="crash-trigger-btn" id="crashBtn" onclick="demoCrash()">
+          ⚠️ Simulate Crash
+        </button>
+
+        <!-- ALERT LOG -->
+        <div class="alert-log" id="alertLog">
+          <div class="al-title">Alert Log</div>
+          <div class="al-empty" id="alEmpty">No alerts triggered yet.</div>
+          <div id="alItems"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: MAP + STATUS -->
+      <div class="demo-map-side">
+        <div id="demoMap"></div>
+        <div class="map-legend">
+          <span>📍 You</span>
+          <span>🚑 Ambulance</span>
+          <span>🏥 Hospital</span>
+        </div>
+
+        <!-- DISPATCH STEPS -->
+        <div class="dispatch-steps" id="dispatchSteps">
+          <div class="dst-title">Dispatch Status</div>
+          <div class="dst-row" id="dst1">
+            <div class="dst-dot"></div>
+            <div class="dst-txt">Crash detected — severity analyzed</div>
+            <div class="dst-badge">Standby</div>
+          </div>
+          <div class="dst-row" id="dst2">
+            <div class="dst-dot"></div>
+            <div class="dst-txt">Ambulance alerted + route calculated</div>
+            <div class="dst-badge">Standby</div>
+          </div>
+          <div class="dst-row" id="dst3">
+            <div class="dst-dot"></div>
+            <div class="dst-txt">Hospital pre-alerted with medical brief</div>
+            <div class="dst-badge">Standby</div>
+          </div>
+          <div class="dst-row" id="dst4">
+            <div class="dst-dot"></div>
+            <div class="dst-txt">Emergency contacts notified via SMS</div>
+            <div class="dst-badge">Standby</div>
+          </div>
+          <div class="dst-row" id="dst5">
+            <div class="dst-dot"></div>
+            <div class="dst-txt">Live tracking active — patient en route</div>
+            <div class="dst-badge">Standby</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── TECH STACK ─────────── -->
+<section class="tech-section">
+  <div class="container">
+    <div class="section-tag" data-aos>Under the Hood</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      Powered By <span class="accent-r">Real Technology</span>
+    </h2>
+
+    <div class="tech-grid" data-aos data-aos-delay="200">
+      <div class="tech-card">
+        <div class="tech-emoji">🤖</div>
+        <div class="tech-name">Golden Hour AI</div>
+        <div class="tech-role">Crash analysis & medical brief generation</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-emoji">🗺️</div>
+        <div class="tech-name">Google Maps</div>
+        <div class="tech-role">Live traffic routing & hospital finder</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-emoji">📱</div>
+        <div class="tech-name">Device Motion API</div>
+        <div class="tech-role">Real-time crash detection via sensors</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-emoji">📞</div>
+        <div class="tech-name">Twilio</div>
+        <div class="tech-role">SMS alerts & voice calls</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-emoji">🔥</div>
+        <div class="tech-name">Firebase</div>
+        <div class="tech-role">Realtime database & push notifications</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-emoji">⚡</div>
+        <div class="tech-name">Node.js</div>
+        <div class="tech-role">Backend API server & webhook handler</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── TEAM ─────────── -->
+<section class="team-section" id="team">
+  <div class="container">
+    <div class="section-tag" data-aos>The Builders</div>
+    <h2 class="section-title" data-aos data-aos-delay="100">
+      Team <span class="accent-r">Silent Coders</span>
+    </h2>
+    <p class="section-sub" data-aos data-aos-delay="150">
+      We believe technology should save lives, not just make them convenient.
+    </p>
+
+    <div class="team-grid" data-aos data-aos-delay="200">
+      <div class="team-card">
+        <div class="team-avatar">👨‍💻</div>
+        <div class="team-name">Somya Kumar Gupta</div>
+        <div class="team-role"></div>
+        <div class="team-tag">Golden Hour AI</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">👨‍💻</div>
+        <div class="team-name">Nitesh Patel</div>
+        <div class="team-role"></div>
+        <div class="team-tag">Golden Hour AI</div>
+      </div>
+      <div class="team-card">
+        <div class="team-avatar">👨‍💻</div>
+        <div class="team-name">Nishant Tiwari</div>
+        <div class="team-role"></div>
+        <div class="team-tag">Golden Hour AI</div>
+      </div>
+   <div class="team-card">
+        <div class="team-avatar">👨‍💻</div>
+        <div class="team-name">Shivam Vishwakarma</div>
+        <div class="team-role"></div>
+        <div class="team-tag">Golden Hour AI</div>
+      </div>
+     </div>
+  </div>
+</section>
+
+<!-- ─────────── CTA ─────────── -->
+<section class="final-cta">
+  <div class="cta-glow"></div>
+  <div class="container cta-inner">
+    <div class="cta-tag" data-aos>The Mission</div>
+    <h2 class="cta-title" data-aos data-aos-delay="100">
+      Someone right now<br/>needs help in the next
+      <span class="cta-accent"> 60 minutes.</span>
+    </h2>
+    <p class="cta-sub" data-aos data-aos-delay="200">
+      BECAUSE EVERY LIFE MATTERS.👨‍👩‍👧‍👦
+    </p>
+    <div data-aos data-aos-delay="300">
+      <button class="btn-primary btn-lg" onclick="scrollToDemo()">▶ See the Demo</button>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────── FOOTER ─────────── -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-logo"> ⚡GOLDEN HOUR AI</div>
+    <div class="footer-team">Team Silent Coders · Agentic AI Hackathon 2025</div>
+    <div class="footer-note">Built with ❤️ to save lives</div>
+  </div>
+</footer>
+
+<!-- SOS MODAL (for demo) -->
+<div class="sos-modal" id="sosModal">
+  <div class="sos-modal-inner">
+    <div class="sos-m-tag">⚠ CRASH DETECTED</div>
+    <div class="sos-m-title">EMERGENCY!</div>
+    <div class="sos-m-sub">Severe impact detected. Alerting services in:</div>
+    <div class="sos-cd-wrap">
+      <svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)">
+        <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(255,32,32,.15)" stroke-width="6"/>
+        <circle cx="60" cy="60" r="50" fill="none" stroke="#FF2020" stroke-width="6"
+          stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="0"
+          id="sosCdCircle" style="transition:stroke-dashoffset 1s linear;filter:drop-shadow(0 0 8px #FF2020)"/>
+      </svg>
+      <div class="sos-cd-num" id="sosCdNum">15</div>
+    </div>
+    <button class="sos-safe-btn" onclick="cancelDemo()">
+      🆘 I AM SAFE — Cancel
+    </button>
+    <p class="sos-m-hint">Press above to cancel the alert</p>
+  </div>
+</div>
+<div class="sos-backdrop" id="sosBackdrop"></div>
+
+<!-- ✅ AUTH GUARD — login check -->
+<script>
+  (function() {
+    // Agar logged in nahi hai toh login.html pe bhejo
+    if (!sessionStorage.getItem('gh_logged_in')) {
+      window.location.replace('login.html');
+    }
+  })();
+</script>
+
+<script src="script.js"></script>
+</body>
+</html>

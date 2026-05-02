@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Hour AI — Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── RESET & VARIABLES (matches main site) ── */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --r:   #FFD700;
+      --r2:  #FFA500;
+      --rg:  rgba(255, 215, 0, 0.12);
+      --rg2: rgba(255, 215, 0, 0.25);
+      --am:  #FF9500;
+      --gr:  #00E87A;
+      --bl:  #3B82F6;
+      --bg:  #07070F;
+      --bg2: #0D0D1A;
+      --bg3: #131325;
+      --bg4: #1A1A30;
+      --bd:  rgba(255,255,255,0.07);
+      --bd2: rgba(255,255,255,0.13);
+      --t:   #FFFFFF;
+      --t2:  rgba(255,255,255,0.55);
+      --t3:  rgba(255,255,255,0.25);
+      --font: 'Bebas Neue', sans-serif;
+      --body: 'DM Sans', sans-serif;
+      --mono: 'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--body);
+      background: var(--bg);
+      color: var(--t);
+      overflow: hidden;
+    }
+
+    /* ── NOISE OVERLAY ── */
+    .noise {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.88' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+
+    /* ── LAYOUT ── */
+    .login-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      height: 100vh;
+      position: relative;
+    }
+
+    /* ── LEFT PANEL — Visual / Brand ── */
+    .left-panel {
+      position: relative;
+      background: var(--bg2);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      overflow: hidden;
+      border-right: 1px solid var(--bd);
+    }
+
+    /* Animated grid background */
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,215,0,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,215,0,0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      animation: gridPan 20s linear infinite;
+    }
+
+    @keyframes gridPan {
+      0%   { transform: translateY(0); }
+      100% { transform: translateY(40px); }
+    }
+
+    /* Glow blob */
+    .left-glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(255,215,0,0.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      animation: glowPulse 4s ease-in-out infinite;
+    }
+
+    @keyframes glowPulse {
+      0%, 100% { opacity: 0.7; transform: translate(-50%, -50%) scale(1); }
+      50%       { opacity: 1;   transform: translate(-50%, -50%) scale(1.1); }
+    }
+
+    /* Corner accent lines */
+    .corner-tl, .corner-br {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+    }
+    .corner-tl { top: 32px; left: 32px; border-top: 2px solid var(--r); border-left: 2px solid var(--r); }
+    .corner-br { bottom: 32px; right: 32px; border-bottom: 2px solid var(--r); border-right: 2px solid var(--r); }
+
+    /* Logo */
+    .left-logo {
+      position: relative;
+      z-index: 2;
+      font-family: var(--font);
+      font-size: 22px;
+      letter-spacing: 2px;
+      color: var(--r);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .left-logo .bolt {
+      font-size: 20px;
+      filter: drop-shadow(0 0 8px var(--r));
+    }
+
+    /* Center visual */
+    .left-center {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 32px;
+    }
+
+    /* Shield rings */
+    .shield-wrap {
+      position: relative;
+      width: 180px;
+      height: 180px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 1px solid;
+    }
+    .ring-1 { width: 180px; height: 180px; border-color: rgba(255,215,0,0.08); animation: spin 20s linear infinite; }
+    .ring-2 { width: 130px; height: 130px; border-color: rgba(255,215,0,0.15); animation: spin 14s linear infinite reverse; }
+    .ring-3 { width: 90px;  height: 90px;  border-color: rgba(255,215,0,0.30); animation: spin 8s linear infinite; }
+
+    /* Dots on rings */
+    .ring-1::before, .ring-2::before, .ring-3::before {
+      content: '';
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      background: var(--r);
+      border-radius: 50%;
+      top: -3px;
+      left: 50%;
+      transform: translateX(-50%);
+      box-shadow: 0 0 8px var(--r);
+    }
+
+    @keyframes spin {
+      0%   { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .shield-core {
+      width: 64px;
+      height: 64px;
+      background: linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,165,0,0.1));
+      border: 1px solid rgba(255,215,0,0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      position: relative;
+      z-index: 1;
+      box-shadow: 0 0 30px rgba(255,215,0,0.2), inset 0 0 20px rgba(255,215,0,0.05);
+    }
+
+    /* Live badge */
+    .live-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0,232,122,0.08);
+      border: 1px solid rgba(0,232,122,0.25);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gr);
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background: var(--gr);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--gr);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* Big tagline */
+    .left-tagline {
+      font-family: var(--font);
+      font-size: clamp(40px, 4vw, 58px);
+      line-height: 1;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    .left-tagline span {
+      color: var(--r);
+      display: block;
+      filter: drop-shadow(0 0 20px rgba(255,215,0,0.4));
+    }
+
+    .left-sub {
+      color: var(--t2);
+      font-size: 14px;
+      text-align: center;
+      max-width: 280px;
+      line-height: 1.7;
+    }
+
+    /* Bottom stats */
+    .left-stats {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      border-top: 1px solid var(--bd);
+      padding-top: 24px;
+    }
+
+    .lst {
+      text-align: center;
+    }
+
+    .lst-num {
+      font-family: var(--font);
+      font-size: 26px;
+      color: var(--r);
+      letter-spacing: 1px;
+    }
+
+    .lst-lbl {
+      font-size: 10px;
+      color: var(--t3);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    /* Vertical dividers */
+    .lst-div {
+      width: 1px;
+      background: var(--bd2);
+    }
+
+    /* ── RIGHT PANEL — Login Form ── */
+    .right-panel {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px;
+      position: relative;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    /* Subtle corner glow */
+    .right-panel::after {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,215,0,0.05) 0%, transparent 70%);
+      top: -100px;
+      right: -100px;
+      pointer-events: none;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 400px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Header */
+    .form-header {
+      margin-bottom: 40px;
+    }
+
+    .form-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--rg);
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 4px;
+      padding: 5px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--r);
+      margin-bottom: 20px;
+      font-family: var(--mono);
+    }
+
+    .form-title {
+      font-family: var(--font);
+      font-size: 46px;
+      line-height: 1;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .form-title span { color: var(--r); }
+
+    .form-desc {
+      font-size: 14px;
+      color: var(--t2);
+      line-height: 1.6;
+    }
+
+    /* Tab switcher */
+    .tab-switch {
+      display: flex;
+      background: var(--bg3);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      padding: 4px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: none;
+      color: var(--t2);
+      font-family: var(--body);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: color 0.25s;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.5px;
+    }
+
+    .tab-btn.active {
+      color: var(--bg);
+    }
+
+    .tab-slider {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      height: calc(100% - 8px);
+      width: calc(50% - 4px);
+      background: var(--r);
+      border-radius: 7px;
+      transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 0 20px rgba(255,215,0,0.3);
+    }
+
+    .tab-slider.right { transform: translateX(calc(100% + 0px)); }
+
+    /* Input fields */
+    .field {
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-bottom: 8px;
+      font-family: var(--mono);
+    }
+
+    .field-wrap {
+      position: relative;
+    }
+
+    .field-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 16px;
+      opacity: 0.5;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .field input {
+      width: 100%;
+      background: var(--bg3);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      padding: 13px 14px 13px 42px;
+      color: var(--t);
+      font-family: var(--body);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    .field input::placeholder {
+      color: var(--t3);
+      font-size: 13px;
+    }
+
+    .field input:focus {
+      border-color: rgba(255,215,0,0.5);
+      background: var(--bg4);
+      box-shadow: 0 0 0 3px rgba(255,215,0,0.08), 0 0 20px rgba(255,215,0,0.05);
+    }
+
+    .field input:focus + .field-icon,
+    .field-wrap:focus-within .field-icon {
+      opacity: 0.9;
+    }
+
+    /* Password toggle */
+    .pwd-toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--t3);
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px;
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .pwd-toggle:hover { color: var(--t2); }
+
+    /* Forgot / extras row */
+    .form-extras {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 28px;
+    }
+
+    .checkbox-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrap input[type="checkbox"] {
+      display: none;
+    }
+
+    .custom-check {
+      width: 16px;
+      height: 16px;
+      border: 1px solid var(--bd2);
+      border-radius: 4px;
+      background: var(--bg3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      font-size: 10px;
+    }
+
+    .checkbox-wrap input:checked ~ .custom-check {
+      background: var(--r);
+      border-color: var(--r);
+      color: #000;
+    }
+
+    .checkbox-label {
+      font-size: 12px;
+      color: var(--t2);
+      user-select: none;
+    }
+
+    .forgot-link {
+      font-size: 12px;
+      color: var(--r);
+      text-decoration: none;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      font-weight: 500;
+    }
+
+    .forgot-link:hover { opacity: 1; }
+
+    /* Submit button */
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: var(--r);
+      border: none;
+      border-radius: 10px;
+      color: #07070F;
+      font-family: var(--font);
+      font-size: 20px;
+      letter-spacing: 2px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(255,215,0,0.25);
+      margin-bottom: 20px;
+    }
+
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15), transparent);
+      pointer-events: none;
+    }
+
+    .btn-login:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 32px rgba(255,215,0,0.4);
+    }
+
+    .btn-login:active {
+      transform: translateY(1px);
+      box-shadow: 0 2px 12px rgba(255,215,0,0.2);
+    }
+
+    .btn-login.loading {
+      pointer-events: none;
+    }
+
+    .btn-login .btn-text { display: block; transition: opacity 0.2s; }
+    .btn-login .btn-spinner { display: none; }
+
+    .btn-login.loading .btn-text { display: none; }
+    .btn-login.loading .btn-spinner {
+      display: block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(0,0,0,0.3);
+      border-top-color: #000;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .divider-line {
+      flex: 1;
+      height: 1px;
+      background: var(--bd);
+    }
+
+    .divider span {
+      font-size: 11px;
+      color: var(--t3);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: var(--mono);
+    }
+
+    /* Social logins */
+    .social-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+
+    .social-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 11px;
+      background: var(--bg3);
+      border: 1px solid var(--bd);
+      border-radius: 10px;
+      color: var(--t2);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: var(--body);
+      transition: all 0.2s;
+    }
+
+    .social-btn:hover {
+      background: var(--bg4);
+      border-color: var(--bd2);
+      color: var(--t);
+    }
+
+    .social-btn svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Switch link */
+    .switch-link {
+      text-align: center;
+      font-size: 13px;
+      color: var(--t2);
+    }
+
+    .switch-link a {
+      color: var(--r);
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .switch-link a:hover { text-decoration: underline; }
+
+    /* Error message */
+    .error-msg {
+      background: rgba(255,50,50,0.08);
+      border: 1px solid rgba(255,50,50,0.25);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #FF6060;
+      margin-bottom: 16px;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .error-msg.show { display: flex; }
+
+    /* Success overlay */
+    .success-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7,7,15,0.97);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+
+    .success-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .success-icon {
+      width: 80px;
+      height: 80px;
+      background: rgba(0,232,122,0.1);
+      border: 2px solid var(--gr);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      margin-bottom: 24px;
+      box-shadow: 0 0 40px rgba(0,232,122,0.2);
+      animation: successPop 0.5s cubic-bezier(0.34,1.56,0.64,1) 0.2s both;
+    }
+
+    @keyframes successPop {
+      0%   { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title {
+      font-family: var(--font);
+      font-size: 40px;
+      color: var(--gr);
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .success-sub {
+      color: var(--t2);
+      font-size: 14px;
+    }
+
+    /* Signup fields (hidden by default) */
+    .signup-only {
+      display: none;
+    }
+
+    .signup-only.show {
+      display: block;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg2); }
+    ::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.4); border-radius: 3px; }
+
+    /* ── MOBILE ── */
+    @media (max-width: 768px) {
+      .login-wrapper { grid-template-columns: 1fr; overflow: auto; height: auto; }
+      body { overflow: auto; }
+      .left-panel { display: none; }
+      .right-panel { min-height: 100vh; padding: 40px 24px; }
+    }
+
+    /* Field entrance animation */
+    @keyframes fieldIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .form-box > * {
+      animation: fieldIn 0.4s ease both;
+    }
+
+    .form-box > *:nth-child(1) { animation-delay: 0.05s; }
+    .form-box > *:nth-child(2) { animation-delay: 0.1s; }
+    .form-box > *:nth-child(3) { animation-delay: 0.15s; }
+    .form-box > *:nth-child(4) { animation-delay: 0.2s; }
+    .form-box > *:nth-child(5) { animation-delay: 0.25s; }
+    .form-box > *:nth-child(6) { animation-delay: 0.3s; }
+    .form-box > *:nth-child(7) { animation-delay: 0.35s; }
+    .form-box > *:nth-child(8) { animation-delay: 0.4s; }
+    .form-box > *:nth-child(9) { animation-delay: 0.45s; }
+  </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<!-- ══════════════════════════════════
+     SUCCESS OVERLAY
+══════════════════════════════════ -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-icon">✓</div>
+  <div class="success-title">ACCESS GRANTED</div>
+  <div class="success-sub" id="successMsg">Redirecting to dashboard...</div>
+</div>
+
+<!-- ══════════════════════════════════
+     MAIN LAYOUT
+══════════════════════════════════ -->
+<div class="login-wrapper">
+
+  <!-- ─── LEFT PANEL ─── -->
+  <div class="left-panel">
+    <div class="left-glow"></div>
+    <div class="corner-tl"></div>
+    <div class="corner-br"></div>
+
+    <!-- Logo -->
+    <div class="left-logo">
+      <span class="bolt">⚡</span>
+      GOLDEN HOUR AI
+    </div>
+
+    <!-- Center visual -->
+    <div class="left-center">
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        System Active
+      </div>
+
+      <div class="shield-wrap">
+        <div class="ring ring-1"></div>
+        <div class="ring ring-2"></div>
+        <div class="ring ring-3"></div>
+        <div class="shield-core">🛡️</div>
+      </div>
+
+      <div class="left-tagline">
+        EVERY<br/>SECOND
+        <span>COUNTS.</span>
+      </div>
+
+      <div class="left-sub">
+        AI-powered emergency response for India's roads. Crash detected. Ambulance dispatched. Lives saved.
+      </div>
+    </div>
+
+    <!-- Bottom stats -->
+    <div class="left-stats">
+      <div class="lst">
+        <div class="lst-num">1.5L</div>
+        <div class="lst-lbl">Deaths / Year</div>
+      </div>
+      <div class="lst-div"></div>
+      <div class="lst">
+        <div class="lst-num">60</div>
+        <div class="lst-lbl">Golden Minutes</div>
+      </div>
+      <div class="lst-div"></div>
+      <div class="lst">
+        <div class="lst-num">&lt;10s</div>
+        <div class="lst-lbl">Alert Time</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── RIGHT PANEL ─── -->
+  <div class="right-panel">
+    <div class="form-box" id="formBox">
+
+      <!-- Header -->
+      <div class="form-header">
+        <div class="form-tag">⚡ Secure Access</div>
+        <div class="form-title">SIGN <span>IN</span></div>
+        <div class="form-desc" id="formDesc">Access your Golden Hour AI dashboard and emergency controls.</div>
+      </div>
+
+      <!-- Tab switcher -->
+      <div class="tab-switch">
+        <button class="tab-btn active" id="tabLogin" onclick="switchTab('login')">Login</button>
+        <button class="tab-btn" id="tabSignup" onclick="switchTab('signup')">Sign Up</button>
+        <div class="tab-slider" id="tabSlider"></div>
+      </div>
+
+      <!-- Error message -->
+      <div class="error-msg" id="errorMsg">
+        <span>⚠</span>
+        <span id="errorText">Invalid credentials. Please try again.</span>
+      </div>
+
+      <!-- Name field (signup only) -->
+      <div class="field signup-only" id="nameField">
+        <label>Full Name</label>
+        <div class="field-wrap">
+          <span class="field-icon">👤</span>
+          <input type="text" id="nameInput" placeholder="Your full name" autocomplete="name" />
+        </div>
+      </div>
+
+      <!-- Email field -->
+      <div class="field">
+        <label>Email Address</label>
+        <div class="field-wrap">
+          <span class="field-icon">✉</span>
+          <input type="email" id="emailInput" placeholder="you@example.com" autocomplete="email" />
+        </div>
+      </div>
+
+      <!-- Phone field (signup only) -->
+      <div class="field signup-only" id="phoneField">
+        <label>Phone Number</label>
+        <div class="field-wrap">
+          <span class="field-icon">📱</span>
+          <input type="tel" id="phoneInput" placeholder="+91 98765 43210" />
+        </div>
+      </div>
+
+      <!-- Password field -->
+      <div class="field">
+        <label>Password</label>
+        <div class="field-wrap">
+          <span class="field-icon">🔒</span>
+          <input type="password" id="pwdInput" placeholder="••••••••" autocomplete="current-password" />
+          <button class="pwd-toggle" onclick="togglePwd('pwdInput', this)" type="button">👁</button>
+        </div>
+      </div>
+
+      <!-- Confirm password (signup only) -->
+      <div class="field signup-only" id="confirmField">
+        <label>Confirm Password</label>
+        <div class="field-wrap">
+          <span class="field-icon">🔒</span>
+          <input type="password" id="confirmInput" placeholder="••••••••" autocomplete="new-password" />
+          <button class="pwd-toggle" onclick="togglePwd('confirmInput', this)" type="button">👁</button>
+        </div>
+      </div>
+
+      <!-- Extras row -->
+      <div class="form-extras" id="extrasRow">
+        <label class="checkbox-wrap">
+          <input type="checkbox" id="rememberMe" />
+          <div class="custom-check" id="checkBox">✓</div>
+          <span class="checkbox-label">Remember me</span>
+        </label>
+        <a href="#" class="forgot-link">Forgot password?</a>
+      </div>
+
+      <!-- Submit button -->
+      <button class="btn-login" id="submitBtn" onclick="handleSubmit()">
+        <span class="btn-text" id="btnText">SIGN IN →</span>
+        <div class="btn-spinner"></div>
+      </button>
+
+      <!-- Divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <span>or continue with</span>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Social buttons -->
+      <div class="social-row">
+        <button class="social-btn" onclick="socialLogin('Google')">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+            <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+            <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+            <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+          </svg>
+          Google
+        </button>
+        <button class="social-btn" onclick="socialLogin('GitHub')">
+          <svg viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub
+        </button>
+      </div>
+
+      <!-- Switch -->
+      <div class="switch-link" id="switchLink">
+        Don't have an account? <a onclick="switchTab('signup')">Sign up free</a>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ══════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════ -->
+<script>
+  let currentTab = 'login';
+
+  // ── Tab Switch ──
+  function switchTab(tab) {
+    currentTab = tab;
+    const slider    = document.getElementById('tabSlider');
+    const tabLogin  = document.getElementById('tabLogin');
+    const tabSignup = document.getElementById('tabSignup');
+    const formTitle = document.querySelector('.form-title');
+    const formDesc  = document.getElementById('formDesc');
+    const btnText   = document.getElementById('btnText');
+    const switchLnk = document.getElementById('switchLink');
+    const signupEls = document.querySelectorAll('.signup-only');
+    const extrasRow = document.getElementById('extrasRow');
+
+    clearError();
+
+    if (tab === 'signup') {
+      slider.classList.add('right');
+      tabLogin.classList.remove('active');
+      tabSignup.classList.add('active');
+      formTitle.innerHTML = 'JOIN <span>US</span>';
+      formDesc.textContent = 'Create your Golden Hour AI account and start protecting lives today.';
+      btnText.textContent = 'CREATE ACCOUNT →';
+      switchLnk.innerHTML = 'Already have an account? <a onclick="switchTab(\'login\')">Sign in</a>';
+      signupEls.forEach(el => el.classList.add('show'));
+      extrasRow.style.display = 'none';
+    } else {
+      slider.classList.remove('right');
+      tabLogin.classList.add('active');
+      tabSignup.classList.remove('active');
+      formTitle.innerHTML = 'SIGN <span>IN</span>';
+      formDesc.textContent = 'Access your Golden Hour AI dashboard and emergency controls.';
+      btnText.textContent = 'SIGN IN →';
+      switchLnk.innerHTML = 'Don\'t have an account? <a onclick="switchTab(\'signup\')">Sign up free</a>';
+      signupEls.forEach(el => el.classList.remove('show'));
+      extrasRow.style.display = 'flex';
+    }
+  }
+
+  // ── Password Toggle ──
+  function togglePwd(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = '🙈';
+    } else {
+      input.type = 'password';
+      btn.textContent = '👁';
+    }
+  }
+
+  // ── Custom Checkbox ──
+  document.getElementById('rememberMe').addEventListener('change', function() {
+    const box = document.getElementById('checkBox');
+    box.style.background = this.checked ? 'var(--r)' : '';
+    box.style.borderColor = this.checked ? 'var(--r)' : '';
+    box.style.color       = this.checked ? '#000' : '';
+  });
+
+  // ── Error helpers ──
+  function showError(msg) {
+    const err = document.getElementById('errorMsg');
+    document.getElementById('errorText').textContent = msg;
+    err.classList.add('show');
+  }
+
+  function clearError() {
+    document.getElementById('errorMsg').classList.remove('show');
+  }
+
+  // ── Submit ──
+  function handleSubmit() {
+    clearError();
+    const email = document.getElementById('emailInput').value.trim();
+    const pwd   = document.getElementById('pwdInput').value.trim(); // ✅ trim whitespace
+
+    // Basic validation
+    if (!email || !email.includes('@')) {
+      showError('Please enter a valid email address.');
+      return;
+    }
+    if (pwd.length < 6) {
+      showError('Password must be at least 6 characters.');
+      return;
+    }
+
+    if (currentTab === 'signup') {
+      const name    = document.getElementById('nameInput').value.trim();
+      const confirm = document.getElementById('confirmInput').value.trim(); // ✅ trim fix
+      if (!name) { showError('Please enter your full name.'); return; }
+      if (pwd !== confirm) { showError('Passwords do not match.'); return; } // ✅ now both trimmed
+    }
+
+    // Show loading
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+
+    // Simulate auth — replace with real fetch to your server
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      showSuccess();
+    }, 1800);
+  }
+
+  // ── Social login placeholder ──
+  function socialLogin(provider) {
+    const btn = document.getElementById('submitBtn');
+    btn.classList.add('loading');
+    document.getElementById('btnText').textContent = `Connecting to ${provider}...`;
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      showSuccess();
+    }, 1600);
+  }
+
+  // ── Success — sessionStorage set karo aur index.html pe redirect ──
+  function showSuccess() {
+    const overlay = document.getElementById('successOverlay');
+    const msg     = document.getElementById('successMsg');
+    const email   = document.getElementById('emailInput').value.trim();
+
+    // ✅ Login flag set karo — index.html isse check karega
+    sessionStorage.setItem('gh_logged_in', 'true');
+    sessionStorage.setItem('gh_user', email);
+
+    msg.textContent = currentTab === 'signup'
+      ? 'Account created! Redirecting to dashboard...'
+      : 'Welcome back! Redirecting to dashboard...';
+    overlay.classList.add('show');
+
+    // ✅ index.html pe redirect karo 2s baad
+    setTimeout(() => {
+      window.location.href = 'index.html';
+    }, 2000);
+  }
+
+  // ── Enter key submit ──
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleSubmit();
+  });
+</script>
+
+</body>
+</html>
