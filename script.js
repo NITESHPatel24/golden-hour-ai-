@@ -109,9 +109,10 @@ function animateCounter(el) {
   let current    = 0;
   const timer    = setInterval(() => {
     current = Math.min(current + step, target);
+    const display = Math.floor(current);
     el.textContent = target > 999
-      ? Math.floor(current).toLocaleString('en-IN')
-      : Math.floor(current);
+      ? display.toLocaleString('en-IN')
+      : display;
     if (current >= target) {
       clearInterval(timer);
       el.textContent = target > 999 ? target.toLocaleString('en-IN') : target;
@@ -331,10 +332,10 @@ function startVoiceListening() {
 
   APP.recognition.onend = () => {
     APP.voiceActive = false;
-    // Re-listen if crash still active and modal open
+    // Re-listen only if crash active, modal open, and not already listening
     const sosModal = document.getElementById('sosModal');
-    if (APP.crashActive && sosModal && sosModal.classList.contains('active')) {
-      setTimeout(() => startVoiceListening(), 1500);
+    if (APP.crashActive && sosModal && sosModal.classList.contains('active') && !APP.voiceActive) {
+      APP.voiceTimeout = setTimeout(() => startVoiceListening(), 1500);
     }
   };
 
@@ -407,6 +408,7 @@ function initVoiceAssistant() {
 function openSOS(severity) {
   const modal    = document.getElementById('sosModal');
   const backdrop = document.getElementById('sosBackdrop');
+  if (!modal || !backdrop) return;
   modal.classList.add('active');
   backdrop.classList.add('active');
 
@@ -446,6 +448,7 @@ function openSOS(severity) {
 
 function cancelDemo() {
   clearInterval(APP.cdInterval);
+  clearTimeout(APP.voiceTimeout);
   if (APP.recognition) { try { APP.recognition.stop(); } catch(e) {} }
   if (APP.synth) APP.synth.cancel();
   closeSOS();
@@ -464,8 +467,10 @@ function cancelDemo() {
 }
 
 function closeSOS() {
-  document.getElementById('sosModal').classList.remove('active');
-  document.getElementById('sosBackdrop').classList.remove('active');
+  const modal    = document.getElementById('sosModal');
+  const backdrop = document.getElementById('sosBackdrop');
+  if (modal)    modal.classList.remove('active');
+  if (backdrop) backdrop.classList.remove('active');
 }
 
 // ════════════════════════════════════════════════════════
@@ -536,10 +541,9 @@ async function removeContact(id) {
   try {
     await fetch(`http://localhost:3000/remove-contact/${id}`, { method: 'DELETE' });
   } catch {
-    // offline — remove locally
+    // offline — remove locally only
   }
   APP.contacts = APP.contacts.filter(c => c.id !== id);
-  localStorage.setItem('gh_contacts', JSON.stringify(APP.contacts));
   renderContactsList();
 }
 
@@ -649,8 +653,14 @@ function resetDemo() {
     const el = document.getElementById(id);
     if (!el) return;
     el.classList.remove('active', 'done');
-    el.querySelector('.dst-badge').textContent = 'Standby';
+    const badge = el.querySelector('.dst-badge');
+    if (badge) badge.textContent = 'Standby';
   });
+  // Reset status bar
+  const dot = document.getElementById('dsbDot');
+  const txt = document.getElementById('dsbTxt');
+  if (dot) dot.classList.remove('danger');
+  if (txt) txt.textContent = 'System Active — Monitoring';
   if (APP.ambMarker) {
     APP.ambLat = APP.userLat + 0.04;
     APP.ambLng = APP.userLng + 0.03;
