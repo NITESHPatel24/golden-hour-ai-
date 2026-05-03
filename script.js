@@ -476,12 +476,16 @@ function closeSOS() {
 async function loadContacts() {
   try {
     const res  = await fetch('http://localhost:3000/contacts');
+    if (!res.ok) throw new Error('Server error ' + res.status);
     const data = await res.json();
     APP.contacts = data.contacts || [];
     renderContactsList();
-  } catch {
-    APP.contacts = JSON.parse(localStorage.getItem('gh_contacts') || '[]');
+    console.log(`✅ ${APP.contacts.length} contacts loaded from server`);
+  } catch (err) {
+    console.warn('⚠ Server offline:', err.message);
+    APP.contacts = [];
     renderContactsList();
+    showContactFeedback('⚠ Cannot reach server. Run: node server.js', 'error');
   }
 }
 
@@ -519,15 +523,9 @@ async function addContact() {
     } else {
       showContactFeedback('❌ ' + (data.error || 'Failed to add contact.'), 'error');
     }
-  } catch {
-    // Fallback: local storage
-    const contact = { id: Date.now(), name, phone, addedAt: new Date().toISOString() };
-    APP.contacts.push(contact);
-    localStorage.setItem('gh_contacts', JSON.stringify(APP.contacts));
-    renderContactsList();
-    nameEl.value  = '';
-    phoneEl.value = '';
-    showContactFeedback(`✅ ${name} added (offline mode).`, 'success');
+  } catch (err) {
+    showContactFeedback('❌ Server not running. Start: node server.js', 'error');
+    console.error('addContact error:', err);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '+ Add Contact'; }
   }
@@ -708,14 +706,29 @@ async function sendAlert(severity = 'HIGH') {
       }),
     });
     const data = await res.json();
-    console.log(`Alert sent [${severity}]:`, data);
+    console.log(`✅ Alert sent [${severity}]:`, data);
+
+    // Show SMS result in alert log
     if (data.contactsNotified > 0) {
-      addAlertLog('📲', 'amber', `SMS sent to ${data.contactsNotified} family contact(s)`);
+      addAlertLog('📲', 'amber', `📱 SMS sent to ${data.contactsNotified} family contact(s)`);
+    } else if (APP.contacts.length === 0) {
+      addAlertLog('⚠', 'amber', 'No family contacts — add contacts to send SMS');
+    } else {
+      // Show individual SMS failures from smsResults
+      if (data.smsResults) {
+        data.smsResults.forEach(r => {
+          if (!r.success) {
+            addAlertLog('❌', 'red', `SMS failed to ${r.to}: ${r.error || 'unknown error'}`);
+            console.error('SMS failure detail:', r);
+          }
+        });
+      }
     }
     return data;
-  } catch {
-    console.log('Server not running — demo mode active');
-    return { message: 'Demo mode' };
+  } catch (err) {
+    console.error('sendAlert failed:', err);
+    addAlertLog('⚠', 'amber', 'Server offline — SMS skipped. Run: node server.js');
+    return { message: 'Server offline' };
   }
 }
 

@@ -1,40 +1,55 @@
 // ═══════════════════════════════════════════════════════════
-//  GOLDEN HOUR AI — server.js  (UPGRADED v2)
-//  Features: Family Contacts, Smart Severity, Twilio SMS
-//  Run: node server.js
+//  GOLDEN HOUR AI — server.js  (SMS FIXED v3)
+//  Real Twilio SMS — messages go to actual phones
+//
+//  SETUP (one time):
+//    npm install express cors twilio
+//
+//  Then fill the 3 values below and run: node server.js
 // ═══════════════════════════════════════════════════════════
 
 const express = require("express");
 const cors    = require("cors");
+const twilio  = require("twilio");          // npm install twilio
 
 const app  = express();
 const PORT = 3000;
 
-// ══════════════════════════════
-//  TWILIO CONFIGURATION
-//  → Replace with real keys from https://console.twilio.com
-// ══════════════════════════════
-const TWILIO_CONFIG = {
-  accountSid: "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",  // ← REPLACE
-  authToken:  "your_auth_token_here",               // ← REPLACE
-  fromNumber: "+1XXXXXXXXXX",                       // ← REPLACE (your Twilio number)
-};
+// ╔══════════════════════════════════════════════════════╗
+// ║         🔑  YOUR TWILIO CREDENTIALS  🔑              ║
+// ║  Get free account → https://www.twilio.com/try-twilio ║
+// ║  Account SID + Auth Token → twilio.com/console       ║
+// ║  Get free number → Console → Phone Numbers           ║
+// ╚══════════════════════════════════════════════════════╝
+const TWILIO_ACCOUNT_SID = "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";  // ← PASTE YOUR SID
+const TWILIO_AUTH_TOKEN  = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";    // ← PASTE YOUR TOKEN
+const TWILIO_FROM_NUMBER = "+1XXXXXXXXXX";                        // ← YOUR TWILIO NUMBER
 
-// Toggle to false to use real Twilio (install: npm install twilio)
-const MOCK_SMS = true;
+// ── Set MOCK_SMS = false to send REAL SMS ──
+// ── Set MOCK_SMS = true  to only log to console (no SMS) ──
+const MOCK_SMS = false;  // ✅ CHANGE THIS TO false FOR REAL SMS
 
 // ── MIDDLEWARE ──
 app.use(cors());
 app.use(express.json());
 app.use(express.static("."));
 
-// ══════════════════════════════
-//  IN-MEMORY STATE
-// ══════════════════════════════
-let incidentLog    = [];
-let currentStatus  = "Idle";
-let dispatchedCount = 0;
-let emergencyContacts = [];   // [{ name, phone, id }]
+// ── IN-MEMORY STATE ──
+let incidentLog       = [];
+let currentStatus     = "Idle";
+let dispatchedCount   = 0;
+let emergencyContacts = [];   // { id, name, phone }
+
+// ── TWILIO CLIENT (only created if real SMS enabled) ──
+let twilioClient = null;
+if (!MOCK_SMS) {
+  try {
+    twilioClient = twilio(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN);
+    log("✅ Twilio client initialized — REAL SMS mode active");
+  } catch (e) {
+    log("❌ Twilio init failed: " + e.message);
+  }
+}
 
 // ── LOGGER ──
 function log(msg) {
@@ -42,127 +57,173 @@ function log(msg) {
   console.log(`[${time}] ${msg}`);
 }
 
-// ══════════════════════════════
-//  SMS SENDER (Twilio / Mock)
-// ══════════════════════════════
-async function sendSMS(to, message) {
+// ══════════════════════════════════════════════
+//  CORE SMS FUNCTION
+//  Handles both Mock and Real Twilio sending
+// ══════════════════════════════════════════════
+async function sendSMS(toNumber, messageBody) {
+  // Format Indian numbers: 9876543210 → +919876543210
+  let formatted = toNumber.replace(/\s|-/g, "").trim();
+  if (formatted.startsWith("0"))   formatted = "+91" + formatted.slice(1);
+  if (!formatted.startsWith("+"))  formatted = "+91" + formatted;
+
   if (MOCK_SMS) {
-    log(`📱 [MOCK SMS] To: ${to}`);
-    log(`   Message: ${message}`);
-    return { success: true, mock: true, to, message };
+    // ── MOCK MODE: just log, no real SMS ──
+    log(`📱 [MOCK SMS] ─────────────────────`);
+    log(`   To     : ${formatted}`);
+    log(`   Message: ${messageBody.substring(0, 80)}...`);
+    log(`──────────────────────────────────`);
+    return { success: true, mock: true, to: formatted };
   }
 
+  // ── REAL TWILIO SMS ──
   try {
-    // Uncomment when real Twilio is configured:
-    // const twilio = require("twilio");
-    // const client = twilio(TWILIO_CONFIG.accountSid, TWILIO_CONFIG.authToken);
-    // const result = await client.messages.create({
-    //   body: message,
-    //   from: TWILIO_CONFIG.fromNumber,
-    //   to,
-    // });
-    // return { success: true, sid: result.sid };
-    log(`📱 [TWILIO] SMS sent to ${to}`);
-    return { success: true };
+    const result = await twilioClient.messages.create({
+      body: messageBody,
+      from: TWILIO_FROM_NUMBER,
+      to:   formatted,
+    });
+    log(`✅ Real SMS sent → ${formatted} | SID: ${result.sid}`);
+    return { success: true, sid: result.sid, to: formatted };
   } catch (err) {
-    log(`❌ SMS failed to ${to}: ${err.message}`);
-    return { success: false, error: err.message };
+    log(`❌ SMS FAILED → ${formatted}`);
+    log(`   Error: ${err.message}`);
+    log(`   Code : ${err.code}`);
+
+    // Common error hints
+    if (err.code === 21608) log("   ⚠ Trial account: verify this number at twilio.com/console first!");
+    if (err.code === 21211) log("   ⚠ Invalid phone number format");
+    if (err.code === 20003) log("   ⚠ Wrong Account SID or Auth Token");
+
+    return { success: false, error: err.message, code: err.code, to: formatted };
   }
 }
 
-// ══════════════════════════════
+// ══════════════════════════════════════════════
 //  NOTIFY ALL FAMILY CONTACTS
-// ══════════════════════════════
-async function notifyFamilyContacts(incident) {
+// ══════════════════════════════════════════════
+async function notifyAllContacts(incident) {
   if (!emergencyContacts.length) {
-    log("⚠️  No family contacts registered.");
+    log("⚠️  No family contacts registered — no SMS sent");
     return [];
   }
 
   const mapsLink = `https://maps.google.com/?q=${incident.lat},${incident.lng}`;
-  const time     = new Date(incident.timestamp).toLocaleTimeString("en-IN");
+  const timeStr  = new Date(incident.timestamp).toLocaleString("en-IN", {
+    timeZone: "Asia/Kolkata",
+    hour:     "2-digit",
+    minute:   "2-digit",
+    day:      "2-digit",
+    month:    "short",
+  });
 
-  const message =
-    `🚨 EMERGENCY ALERT — Golden Hour AI\n` +
-    `Your family member was in a crash!\n\n` +
-    `📍 Location: ${mapsLink}\n` +
-    `🕐 Time: ${time}\n` +
-    `⚠️ Severity: ${incident.severity}\n` +
-    `🚑 Status: Ambulance Dispatched to ${incident.hospital}\n` +
-    `⏱ ETA: ${incident.eta}\n\n` +
-    `Stay calm. Help is on the way.`;
+  const msg =
+    `🚨 EMERGENCY ALERT - Golden Hour AI\n\n` +
+    `A family member has been in a road accident!\n\n` +
+    `📍 Location:\n${mapsLink}\n\n` +
+    `🕐 Time: ${timeStr}\n` +
+    `⚠️  Severity: ${incident.severity}\n` +
+    `🚑 Ambulance dispatched to ${incident.hospital}\n` +
+    `⏱  ETA: ${incident.eta}\n\n` +
+    `Please rush to the location.\n` +
+    `- Golden Hour AI`;
+
+  log(`📲 Sending SMS to ${emergencyContacts.length} contact(s)...`);
 
   const results = await Promise.all(
-    emergencyContacts.map(c => sendSMS(c.phone, message))
+    emergencyContacts.map(c => sendSMS(c.phone, msg))
   );
 
-  log(`📲 Family SMS sent to ${emergencyContacts.length} contacts`);
+  const ok  = results.filter(r => r.success).length;
+  const bad = results.filter(r => !r.success).length;
+  log(`📊 SMS Results: ${ok} sent ✅  ${bad} failed ❌`);
+
   return results;
 }
 
-// ══════════════════════════════
-//  ROUTES — CONTACTS
-// ══════════════════════════════
+// ══════════════════════════════════════════════
+//  API — FAMILY CONTACTS
+// ══════════════════════════════════════════════
 
-// POST /add-contact — register a family contact
+// POST /add-contact
 app.post("/add-contact", (req, res) => {
   const { name, phone } = req.body;
 
-  if (!name || !phone) {
-    return res.status(400).json({ success: false, error: "name and phone required" });
+  if (!name?.trim() || !phone?.trim()) {
+    return res.status(400).json({ success: false, error: "Name and phone are required" });
   }
 
-  // Basic phone validation
-  const cleanPhone = phone.replace(/\s/g, "");
-  if (!/^\+?[0-9]{10,15}$/.test(cleanPhone)) {
-    return res.status(400).json({ success: false, error: "Invalid phone format. Use +91XXXXXXXXXX" });
+  // Normalize phone: strip spaces/dashes, add +91 if needed
+  let cleaned = phone.replace(/\s|-/g, "").trim();
+  if (cleaned.startsWith("0"))  cleaned = "+91" + cleaned.slice(1);
+  if (!cleaned.startsWith("+")) cleaned = "+91" + cleaned;
+
+  // Validate length (10–15 digits after +)
+  const digits = cleaned.replace("+", "");
+  if (!/^[0-9]{10,15}$/.test(digits)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid phone. Use 10-digit Indian number like 9876543210 or +919876543210"
+    });
   }
 
-  // Prevent duplicates
-  if (emergencyContacts.find(c => c.phone === cleanPhone)) {
-    return res.status(409).json({ success: false, error: "Contact already registered" });
+  // Duplicate check
+  if (emergencyContacts.find(c => c.phone === cleaned)) {
+    return res.status(409).json({ success: false, error: "This number is already registered" });
+  }
+
+  if (emergencyContacts.length >= 5) {
+    return res.status(400).json({ success: false, error: "Maximum 5 contacts allowed" });
   }
 
   const contact = {
-    id:    Date.now(),
-    name:  name.trim(),
-    phone: cleanPhone,
+    id:      Date.now(),
+    name:    name.trim(),
+    phone:   cleaned,
     addedAt: new Date().toISOString(),
   };
 
   emergencyContacts.push(contact);
-  log(`👨‍👩‍👧 Contact added: ${contact.name} (${contact.phone})`);
+  log(`👨‍👩‍👧 Contact added: ${contact.name} → ${contact.phone}`);
 
-  res.json({ success: true, contact, totalContacts: emergencyContacts.length });
-});
-
-// GET /contacts — list all registered contacts
-app.get("/contacts", (req, res) => {
   res.json({
-    count: emergencyContacts.length,
-    contacts: emergencyContacts,
+    success:       true,
+    contact,
+    totalContacts: emergencyContacts.length,
+    message:       `${name} added. They will receive SMS during emergencies.`
   });
 });
 
-// DELETE /remove-contact/:id — remove a contact
-app.delete("/remove-contact/:id", (req, res) => {
-  const id = parseInt(req.params.id);
-  const idx = emergencyContacts.findIndex(c => c.id === id);
-
-  if (idx === -1) {
-    return res.status(404).json({ success: false, error: "Contact not found" });
-  }
-
-  const removed = emergencyContacts.splice(idx, 1)[0];
-  log(`🗑️  Contact removed: ${removed.name}`);
-  res.json({ success: true, removed });
+// GET /contacts
+app.get("/contacts", (req, res) => {
+  res.json({ count: emergencyContacts.length, contacts: emergencyContacts });
 });
 
-// ══════════════════════════════
-//  ROUTES — CORE ALERT
-// ══════════════════════════════
+// DELETE /remove-contact/:id
+app.delete("/remove-contact/:id", (req, res) => {
+  const id  = parseInt(req.params.id);
+  const idx = emergencyContacts.findIndex(c => c.id === id);
+  if (idx === -1) return res.status(404).json({ success: false, error: "Contact not found" });
+  const removed = emergencyContacts.splice(idx, 1)[0];
+  log(`🗑️  Removed contact: ${removed.name} (${removed.phone})`);
+  res.json({ success: true, removed, contacts: emergencyContacts });
+});
 
-// POST /alert — crash detected, dispatch ambulance + notify contacts
+// POST /test-sms — test SMS to a specific number (useful during setup)
+app.post("/test-sms", async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) return res.status(400).json({ error: "phone required" });
+
+  log(`🧪 Test SMS requested to: ${phone}`);
+  const result = await sendSMS(phone, "✅ Golden Hour AI test message. SMS is working!");
+  res.json(result);
+});
+
+// ══════════════════════════════════════════════
+//  API — CORE ALERT
+// ══════════════════════════════════════════════
+
+// POST /alert
 app.post("/alert", async (req, res) => {
   const { lat, lng, severity = "HIGH", timestamp } = req.body;
 
@@ -173,7 +234,7 @@ app.post("/alert", async (req, res) => {
     id:        dispatchedCount,
     lat:       lat  || 23.2599,
     lng:       lng  || 77.4126,
-    severity:  severity.toUpperCase(),
+    severity:  (severity || "HIGH").toUpperCase(),
     timestamp: timestamp || new Date().toISOString(),
     status:    "dispatched",
     hospital:  "AIIMS Bhopal",
@@ -181,20 +242,22 @@ app.post("/alert", async (req, res) => {
   };
 
   incidentLog.unshift(incident);
-  log(`🚨 CRASH! Severity: ${incident.severity} | Loc: ${incident.lat}, ${incident.lng} | ETA: ${incident.eta}`);
+  log(`🚨 CRASH DETECTED! Severity: ${incident.severity} | ETA: ${incident.eta}`);
   log(`🏥 Hospital ${incident.hospital} pre-alerted`);
 
-  // Notify family contacts (only for MEDIUM/HIGH severity)
+  // Send SMS for MEDIUM and HIGH crashes
   let smsResults = [];
   if (["MEDIUM", "HIGH"].includes(incident.severity)) {
-    smsResults = await notifyFamilyContacts(incident);
+    smsResults = await notifyAllContacts(incident);
+  } else {
+    log("ℹ️  LOW severity — no SMS sent");
   }
 
   res.json({
-    success: true,
-    message: "Alert sent successfully",
+    success:          true,
+    message:          "Alert dispatched",
     incident,
-    contactsNotified: smsResults.length,
+    contactsNotified: smsResults.filter(r => r.success).length,
     smsResults,
   });
 });
@@ -205,6 +268,7 @@ app.get("/status", (req, res) => {
     status:         currentStatus,
     dispatchedCount,
     contactsCount:  emergencyContacts.length,
+    smsMode:        MOCK_SMS ? "mock" : "live-twilio",
     uptime:         process.uptime().toFixed(0) + "s",
     timestamp:      new Date().toISOString(),
   });
@@ -219,23 +283,33 @@ app.get("/incidents", (req, res) => {
 app.post("/cancel", (req, res) => {
   const { id } = req.body;
   currentStatus = "Alert cancelled — user safe ✅";
-  log("✅ Alert cancelled — user confirmed safe");
+  log("✅ Alert cancelled");
   if (id) {
-    const incident = incidentLog.find(i => i.id === id);
-    if (incident) incident.status = "cancelled";
+    const inc = incidentLog.find(i => i.id === id);
+    if (inc) inc.status = "cancelled";
   }
   res.json({ success: true, message: "Alert cancelled" });
 });
 
 // GET /health
 app.get("/health", (req, res) => {
-  res.json({ status: "ok", server: "Golden Hour AI v2", port: PORT });
+  res.json({
+    status:  "ok",
+    server:  "Golden Hour AI v3",
+    port:    PORT,
+    smsMode: MOCK_SMS ? "MOCK (no real SMS)" : "LIVE TWILIO",
+    contacts: emergencyContacts.length,
+  });
 });
 
 // ── START ──
 app.listen(PORT, () => {
-  log(`⚡ Golden Hour AI Server v2 running → http://localhost:${PORT}`);
-  log(`📋 Contacts: POST /add-contact | GET /contacts | DELETE /remove-contact/:id`);
-  log(`🚨 Alerts:   POST /alert | GET /status | GET /incidents | POST /cancel`);
-  log(`📱 SMS Mode: ${MOCK_SMS ? "MOCK (console only)" : "LIVE (Twilio)"}`);
+  log(`⚡ Golden Hour AI Server v3 → http://localhost:${PORT}`);
+  log(`📱 SMS Mode: ${MOCK_SMS ? "🟡 MOCK (console only)" : "🟢 LIVE TWILIO (real SMS)"}`);
+  log(`👥 Contacts: POST /add-contact | GET /contacts | DELETE /remove-contact/:id`);
+  log(`🧪 Test SMS: POST /test-sms  { "phone": "+91XXXXXXXXXX" }`);
+  log(`🚨 Alert:   POST /alert | GET /status | GET /incidents | POST /cancel`);
+  if (!MOCK_SMS && (!TWILIO_ACCOUNT_SID.startsWith("AC") || TWILIO_ACCOUNT_SID.includes("xxx"))) {
+    log(`⚠️  WARNING: TWILIO credentials not set! Fill TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_FROM_NUMBER`);
+  }
 });

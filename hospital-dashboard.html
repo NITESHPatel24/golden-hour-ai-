@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Golden Hour AI - Hospital Command Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #071014;
+      --panel: rgba(13, 25, 31, 0.82);
+      --panel-solid: #0d191f;
+      --line: rgba(255, 255, 255, 0.1);
+      --line-strong: rgba(255, 255, 255, 0.18);
+      --text: #f6fbff;
+      --muted: rgba(246, 251, 255, 0.62);
+      --soft: rgba(246, 251, 255, 0.36);
+      --red: #ff3b4f;
+      --amber: #ffb020;
+      --green: #2ee59d;
+      --cyan: #55d9ff;
+      --blue: #6c8cff;
+      --shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+      --mono: "JetBrains Mono", monospace;
+      --sans: "Inter", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 14% 10%, rgba(255, 59, 79, 0.18), transparent 30%),
+        radial-gradient(circle at 84% 12%, rgba(85, 217, 255, 0.16), transparent 28%),
+        linear-gradient(135deg, #071014 0%, #0a171b 45%, #101018 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), rgba(0,0,0,.18));
+    }
+
+    button, input { font: inherit; }
+
+    .shell {
+      width: min(1600px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 20px 0 30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .topbar {
+      min-height: 86px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(7, 16, 20, 0.72);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand-mark {
+      width: 54px;
+      height: 54px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, rgba(255,59,79,.96), rgba(255,176,32,.9));
+      box-shadow: 0 14px 34px rgba(255, 59, 79, 0.26);
+      font-weight: 900;
+      color: white;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: clamp(22px, 2.25vw, 34px);
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+
+    .brand p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      height: 38px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(255,255,255,.04);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 0 rgba(46, 229, 157, 0.5);
+      animation: pulse 1.7s infinite;
+    }
+
+    @keyframes pulse {
+      70% { box-shadow: 0 0 0 12px rgba(46, 229, 157, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(46, 229, 157, 0); }
+    }
+
+    .btn {
+      height: 44px;
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: rgba(255,255,255,.07);
+      color: var(--text);
+      padding: 0 16px;
+      cursor: pointer;
+      transition: transform .18s ease, background .18s ease, border-color .18s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,.11);
+      border-color: rgba(255,255,255,.3);
+    }
+
+    .btn.primary {
+      border-color: rgba(255,59,79,.55);
+      background: linear-gradient(135deg, rgba(255,59,79,.95), rgba(255,176,32,.92));
+      font-weight: 800;
+      color: white;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1.08fr 1.86fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+      min-width: 0;
+    }
+
+    .panel-head {
+      min-height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 18px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .panel-sub {
+      color: var(--soft);
+      font: 700 11px var(--mono);
+      text-transform: uppercase;
+    }
+
+    .queue {
+      height: calc(100vh - 192px);
+      min-height: 700px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .incident-list {
+      overflow: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .incident-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 15px;
+      background: rgba(255,255,255,.045);
+      cursor: pointer;
+      transition: border-color .18s ease, background .18s ease, transform .18s ease;
+    }
+
+    .incident-card:hover,
+    .incident-card.active {
+      transform: translateY(-1px);
+      border-color: rgba(85,217,255,.48);
+      background: rgba(85,217,255,.08);
+    }
+
+    .incident-card.high {
+      border-left: 4px solid var(--red);
+    }
+
+    .incident-card.medium {
+      border-left: 4px solid var(--amber);
+    }
+
+    .incident-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .case-id {
+      font: 800 12px var(--mono);
+      color: var(--cyan);
+    }
+
+    .severity {
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .04em;
+      color: white;
+      background: rgba(255,59,79,.9);
+    }
+
+    .severity.medium { background: rgba(255,176,32,.9); color: #201507; }
+
+    .incident-card h3 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      line-height: 1.25;
+    }
+
+    .meta-grid {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .main {
+      height: calc(100vh - 192px);
+      min-height: 700px;
+      display: grid;
+      grid-template-rows: auto minmax(300px, 1fr) auto auto;
+      overflow: hidden;
+    }
+
+    .hero-alert {
+      padding: 22px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 20px;
+      align-items: start;
+      background:
+        linear-gradient(90deg, rgba(255,59,79,.2), transparent 52%),
+        rgba(255,255,255,.03);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .tagline {
+      color: var(--amber);
+      font: 800 12px var(--mono);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .hero-alert h2 {
+      margin: 0;
+      font-size: clamp(34px, 4.45vw, 64px);
+      line-height: .96;
+      letter-spacing: 0;
+    }
+
+    .hero-alert p {
+      max-width: 720px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .eta-card {
+      width: 188px;
+      border: 1px solid rgba(255,176,32,.42);
+      border-radius: 8px;
+      padding: 16px;
+      text-align: center;
+      background: rgba(255,176,32,.1);
+    }
+
+    .eta-card .label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .eta-card .value {
+      margin-top: 8px;
+      font: 900 36px var(--mono);
+      color: var(--amber);
+    }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .action-row .btn {
+      min-width: 136px;
+    }
+
+    #map {
+      width: 100%;
+      min-height: 300px;
+      background: #0a1116;
+    }
+
+    .patient-strip {
+      display: grid;
+      grid-template-columns: 1.1fr repeat(4, minmax(0, .85fr));
+      gap: 1px;
+      background: var(--line);
+      border-top: 1px solid var(--line);
+    }
+
+    .patient-card {
+      min-height: 98px;
+      padding: 16px;
+      background: rgba(10, 21, 27, 0.98);
+    }
+
+    .patient-card span {
+      display: block;
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .patient-card strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .patient-card .vital {
+      font: 900 25px var(--mono);
+      color: var(--green);
+    }
+
+    .details-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1px;
+      background: var(--line);
+      border-top: 1px solid var(--line);
+    }
+
+    .detail {
+      min-height: 100px;
+      padding: 16px;
+      background: rgba(13,25,31,.96);
+      min-width: 0;
+    }
+
+    .detail span {
+      display: block;
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .detail strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+
+    .right-rail {
+      height: calc(100vh - 192px);
+      min-height: 700px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      overflow: hidden;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 15px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .stat span {
+      color: var(--soft);
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 8px;
+      font: 900 26px var(--mono);
+    }
+
+    .resource-grid {
+      display: grid;
+      gap: 10px;
+      padding: 0 12px 12px;
+    }
+
+    .resource {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: rgba(255,255,255,.04);
+    }
+
+    .resource-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .resource-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      margin-top: 10px;
+      overflow: hidden;
+    }
+
+    .resource-bar div {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green), var(--cyan));
+    }
+
+    .timeline {
+      border-top: 1px solid var(--line);
+      overflow: auto;
+      padding: 14px;
+    }
+
+    .step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 22px 1fr;
+      gap: 10px;
+      padding-bottom: 16px;
+    }
+
+    .step:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 20px;
+      bottom: 0;
+      width: 1px;
+      background: rgba(255,255,255,.12);
+    }
+
+    .step-dot {
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      margin-top: 2px;
+      background: var(--green);
+      box-shadow: 0 0 18px rgba(46,229,157,.45);
+    }
+
+    .step h4 {
+      margin: 0;
+      font-size: 13px;
+    }
+
+    .step p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .brief {
+      border-top: 1px solid var(--line);
+      padding: 14px;
+      background: rgba(255,255,255,.035);
+    }
+
+    .brief-title {
+      color: var(--cyan);
+      font: 900 12px var(--mono);
+      text-transform: uppercase;
+      margin-bottom: 9px;
+    }
+
+    .brief pre {
+      margin: 0;
+      white-space: pre-wrap;
+      color: rgba(246,251,255,.76);
+      font: 12px/1.45 var(--mono);
+    }
+
+    .empty {
+      min-height: 250px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      color: var(--muted);
+      padding: 30px;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      width: min(420px, calc(100vw - 40px));
+      border: 1px solid rgba(255,59,79,.45);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(31, 12, 17, 0.94);
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      transform: translateY(120%);
+      transition: transform .28s ease;
+      z-index: 1000;
+    }
+
+    .toast.show { transform: translateY(0); }
+
+    .toast strong { display: block; margin-bottom: 5px; }
+    .toast span { color: var(--muted); font-size: 13px; }
+
+    @media (max-width: 1180px) {
+      .dashboard {
+        grid-template-columns: 380px 1fr;
+      }
+      .right-rail {
+        grid-column: 1 / -1;
+        height: auto;
+        min-height: 0;
+        grid-template-rows: auto auto auto;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .shell { width: min(100% - 20px, 1480px); padding-top: 10px; }
+      .topbar, .hero-alert { grid-template-columns: 1fr; flex-direction: column; align-items: stretch; }
+      .top-actions { justify-content: flex-start; }
+      .dashboard { grid-template-columns: 1fr; }
+      .queue, .main, .right-rail { height: auto; min-height: 0; }
+      .incident-list { max-height: 360px; }
+      .hero-alert { grid-template-columns: 1fr; }
+      .eta-card { width: 100%; }
+      .details-strip, .stats, .patient-strip { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 520px) {
+      .details-strip, .stats, .patient-strip { grid-template-columns: 1fr; }
+      .brand-mark { width: 40px; height: 40px; }
+      .btn, .pill { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">GH</div>
+        <div>
+          <h1>Hospital Command Dashboard</h1>
+          <p>Golden Hour AI live emergency intake for trauma desk, ER, blood bank, and ambulance bay.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="pill"><span class="pulse-dot"></span><span id="serverState">Connecting to server...</span></div>
+        <div class="pill">Last sync <span id="lastSync">--</span></div>
+        <button class="btn" onclick="refreshIncidents()">Refresh</button>
+        <button class="btn primary" onclick="simulateHospitalAlert()">Simulate Incoming Alert</button>
+      </div>
+    </header>
+
+    <section class="dashboard">
+      <aside class="panel queue">
+        <div class="panel-head">
+          <h2 class="panel-title">Incoming Alerts</h2>
+          <span class="panel-sub" id="queueCount">0 cases</span>
+        </div>
+        <div class="incident-list" id="incidentList">
+          <div class="empty">No emergency alert received yet. Click simulate or trigger crash from your main website.</div>
+        </div>
+      </aside>
+
+      <section class="panel main">
+        <div class="hero-alert">
+          <div>
+            <div class="tagline" id="alertTag">ER Standby Mode</div>
+            <h2 id="mainTitle">Waiting for Golden Hour AI alert</h2>
+            <p id="mainMessage">Incoming emergency alerts will appear here with location, severity, ETA, and the preparation checklist your ER team needs before the ambulance arrives.</p>
+            <div class="action-row">
+              <button class="btn primary" onclick="acceptCase()">Accept Case</button>
+              <button class="btn" onclick="activateTraumaTeam()">Activate Trauma Team</button>
+              <button class="btn" onclick="markArrived()">Mark Arrived</button>
+            </div>
+          </div>
+          <div class="eta-card">
+            <div class="label">Ambulance ETA</div>
+            <div class="value" id="etaValue">--</div>
+          </div>
+        </div>
+        <div id="map"></div>
+        <div class="patient-strip">
+          <div class="patient-card">
+            <span>AI Patient Brief</span>
+            <strong id="patientBrief">No patient assigned yet</strong>
+          </div>
+          <div class="patient-card">
+            <span>Pulse</span>
+            <strong class="vital" id="pulseVal">--</strong>
+          </div>
+          <div class="patient-card">
+            <span>BP</span>
+            <strong class="vital" id="bpVal">--</strong>
+          </div>
+          <div class="patient-card">
+            <span>SpO2</span>
+            <strong class="vital" id="spo2Val">--</strong>
+          </div>
+          <div class="patient-card">
+            <span>GCS</span>
+            <strong class="vital" id="gcsVal">--</strong>
+          </div>
+        </div>
+        <div class="details-strip">
+          <div class="detail">
+            <span>Crash Location</span>
+            <strong id="locationText">Waiting for GPS coordinates</strong>
+          </div>
+          <div class="detail">
+            <span>Assigned Hospital</span>
+            <strong id="hospitalText">AIIMS Bhopal</strong>
+          </div>
+          <div class="detail">
+            <span>Severity</span>
+            <strong id="severityText">--</strong>
+          </div>
+          <div class="detail">
+            <span>Maps Link</span>
+            <strong><a id="mapsLink" href="#" target="_blank" rel="noreferrer" style="color:var(--cyan)">Open when alert arrives</a></strong>
+          </div>
+        </div>
+      </section>
+
+      <aside class="panel right-rail">
+        <div>
+          <div class="panel-head">
+            <h2 class="panel-title">ER Readiness</h2>
+            <span class="panel-sub">Auto generated</span>
+          </div>
+          <div class="stats">
+            <div class="stat"><span>Total Alerts</span><strong id="totalAlerts">0</strong></div>
+            <div class="stat"><span>High Priority</span><strong id="highAlerts">0</strong></div>
+            <div class="stat"><span>Trauma Bay</span><strong id="traumaBay">Ready</strong></div>
+            <div class="stat"><span>Blood Bank</span><strong id="bloodBank">O- Prep</strong></div>
+          </div>
+          <div class="resource-grid">
+            <div class="resource">
+              <div class="resource-top"><span>ER Beds</span><strong id="bedStatus">4 / 6 Free</strong></div>
+              <div class="resource-bar"><div id="bedBar" style="width:66%"></div></div>
+            </div>
+            <div class="resource">
+              <div class="resource-top"><span>Trauma Team</span><strong id="teamStatus">Standby</strong></div>
+              <div class="resource-bar"><div id="teamBar" style="width:38%"></div></div>
+            </div>
+            <div class="resource">
+              <div class="resource-top"><span>O- Blood Units</span><strong id="bloodStatus">8 Ready</strong></div>
+              <div class="resource-bar"><div id="bloodBar" style="width:80%"></div></div>
+            </div>
+          </div>
+        </div>
+        <div class="timeline" id="timeline">
+          <div class="step">
+            <div class="step-dot"></div>
+            <div>
+              <h4>Dashboard online</h4>
+              <p>Listening for Golden Hour AI incident messages from localhost:3000.</p>
+            </div>
+          </div>
+        </div>
+        <div class="brief">
+          <div class="brief-title">Hospital Alert Message</div>
+          <pre id="smsBrief">No alert yet.
+
+Expected message:
+EMERGENCY ALERT - Golden Hour AI
+Severity, exact GPS location, ETA, hospital assignment, and preparation checklist will appear here.</pre>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <div class="toast" id="toast">
+    <strong>New hospital alert received</strong>
+    <span id="toastText">Emergency case added to queue.</span>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:3000";
+    const state = {
+      incidents: [],
+      selectedId: null,
+      knownIds: new Set(),
+      acceptedCases: new Set(),
+      traumaActivated: new Set(),
+      arrivedCases: new Set(),
+      map: null,
+      crashMarker: null,
+      hospitalMarker: null,
+      routeLine: null
+    };
+
+    const defaultHospital = { name: "AIIMS Bhopal", lat: 23.275, lng: 77.415 };
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initMap();
+      refreshIncidents();
+      setInterval(refreshIncidents, 2500);
+    });
+
+    function initMap() {
+      state.map = L.map("map", { zoomControl: true, attributionControl: false }).setView([23.2599, 77.4126], 13);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19 }).addTo(state.map);
+      state.hospitalMarker = L.marker([defaultHospital.lat, defaultHospital.lng], {
+        icon: markerIcon("H", "#55d9ff")
+      }).addTo(state.map).bindPopup(defaultHospital.name);
+    }
+
+    function markerIcon(label, color) {
+      return L.divIcon({
+        className: "",
+        iconSize: [34, 34],
+        iconAnchor: [17, 17],
+        html: `<div style="width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:${color};color:white;font:900 13px Inter;box-shadow:0 10px 30px rgba(0,0,0,.42);border:2px solid white">${label}</div>`
+      });
+    }
+
+    async function refreshIncidents() {
+      try {
+        const res = await fetch(`${API_BASE}/incidents`);
+        if (!res.ok) throw new Error("Server response failed");
+        const data = await res.json();
+        const incoming = data.incidents || [];
+        document.getElementById("serverState").textContent = "Live server connected";
+        document.getElementById("lastSync").textContent = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
+        const newest = incoming.find(item => !state.knownIds.has(item.id));
+        state.incidents = incoming;
+        incoming.forEach(item => state.knownIds.add(item.id));
+        renderQueue();
+        renderStats();
+
+        if (incoming.length && !state.selectedId) selectIncident(incoming[0].id, false);
+        if (newest && state.selectedId !== newest.id) {
+          showToast(newest);
+          selectIncident(newest.id, true);
+        }
+      } catch (error) {
+        document.getElementById("serverState").textContent = "Server offline - demo view active";
+        document.getElementById("lastSync").textContent = "--";
+        if (!state.incidents.length) {
+          seedDemoIncident();
+        }
+      }
+    }
+
+    function seedDemoIncident() {
+      const demo = {
+        id: "DEMO-1",
+        lat: 23.2599,
+        lng: 77.4126,
+        severity: "HIGH",
+        timestamp: new Date().toISOString(),
+        status: "demo",
+        hospital: "AIIMS Bhopal",
+        eta: "4 minutes"
+      };
+      state.incidents = [demo];
+      renderQueue();
+      renderStats();
+      selectIncident(demo.id, false);
+    }
+
+    function renderQueue() {
+      const list = document.getElementById("incidentList");
+      document.getElementById("queueCount").textContent = `${state.incidents.length} case${state.incidents.length === 1 ? "" : "s"}`;
+      if (!state.incidents.length) {
+        list.innerHTML = `<div class="empty">No emergency alert received yet. Click simulate or trigger crash from your main website.</div>`;
+        return;
+      }
+
+      list.innerHTML = state.incidents.map(incident => {
+        const sev = String(incident.severity || "HIGH").toLowerCase();
+        const active = String(incident.id) === String(state.selectedId) ? "active" : "";
+        return `
+          <article class="incident-card ${sev} ${active}" onclick="selectIncident('${incident.id}', false)">
+            <div class="incident-top">
+              <span class="case-id">CASE #${incident.id}</span>
+              <span class="severity ${sev}">${incident.severity || "HIGH"}</span>
+            </div>
+            <h3>${incident.hospital || "Assigned Hospital"} trauma pre-alert</h3>
+            <div class="meta-grid">
+              <span>ETA: ${incident.eta || "--"}</span>
+              <span>GPS: ${Number(incident.lat).toFixed(4)}, ${Number(incident.lng).toFixed(4)}</span>
+              <span>Status: ${caseStatus(incident.id)}</span>
+              <span>${formatTime(incident.timestamp)}</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function selectIncident(id, isNew) {
+      const incident = state.incidents.find(item => String(item.id) === String(id));
+      if (!incident) return;
+      state.selectedId = incident.id;
+      renderQueue();
+      renderMainIncident(incident);
+      renderTimeline(incident, isNew);
+    }
+
+    function renderMainIncident(incident) {
+      const lat = Number(incident.lat || 23.2599);
+      const lng = Number(incident.lng || 77.4126);
+      const severity = incident.severity || "HIGH";
+      const eta = incident.eta || "4 minutes";
+      const maps = `https://maps.google.com/?q=${lat},${lng}`;
+
+      document.getElementById("alertTag").textContent = `${severity} severity incoming trauma alert`;
+      const arrived = state.arrivedCases.has(incident.id);
+      document.getElementById("mainTitle").textContent = arrived ? "Patient at ambulance bay" : `Patient arriving in ${eta}`;
+      document.getElementById("mainMessage").textContent = arrived
+        ? "The ambulance has reached the bay. Begin trauma handoff, connect monitoring, and move the patient to the prepared treatment area."
+        : "Crash alert received. The ER desk has the patient location, severity estimate, and arrival time, so the trauma team can prepare before the ambulance reaches the hospital.";
+      document.getElementById("etaValue").textContent = arrived ? "NOW" : eta.replace(" minutes", "m");
+      document.getElementById("locationText").textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      document.getElementById("hospitalText").textContent = incident.hospital || defaultHospital.name;
+      document.getElementById("severityText").textContent = severity;
+      document.getElementById("mapsLink").href = maps;
+      document.getElementById("mapsLink").textContent = "Open Google Maps";
+      renderPatientVitals(incident);
+      renderCaseActions(incident);
+
+      const brief = [
+        "EMERGENCY ALERT - Golden Hour AI",
+        `Case ID: ${incident.id}`,
+        `Severity: ${severity}`,
+        `Location: ${maps}`,
+        `Time: ${formatTime(incident.timestamp)}`,
+        `Hospital: ${incident.hospital || defaultHospital.name}`,
+        `Ambulance ETA: ${eta}`,
+        `Hospital Status: ${caseStatus(incident.id)}`,
+        "",
+        "Prep:",
+        "- Trauma bay ready",
+        "- ER doctor + nurse team alerted",
+        "- O-negative blood standby",
+        "- CT/X-ray team notified",
+        "- Ambulance bay cleared"
+      ].join("\n");
+      document.getElementById("smsBrief").textContent = brief;
+
+      updateMap(lat, lng, incident.hospital || defaultHospital.name);
+    }
+
+    function renderPatientVitals(incident) {
+      const severity = String(incident.severity || "HIGH").toUpperCase();
+      const seed = String(incident.id).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+      const isHigh = severity === "HIGH";
+      document.getElementById("patientBrief").textContent = isHigh
+        ? "Likely head/chest trauma. Keep airway kit, oxygen, CT, and emergency blood ready."
+        : "Moderate impact. Prepare observation bed, vitals monitor, X-ray, and wound care.";
+      document.getElementById("pulseVal").textContent = `${isHigh ? 118 + seed % 18 : 94 + seed % 14} bpm`;
+      document.getElementById("bpVal").textContent = isHigh ? "90/58" : "118/76";
+      document.getElementById("spo2Val").textContent = isHigh ? `${88 + seed % 6}%` : `${95 + seed % 3}%`;
+      document.getElementById("gcsVal").textContent = isHigh ? `${9 + seed % 3}/15` : `${13 + seed % 2}/15`;
+    }
+
+    function renderCaseActions(incident) {
+      const id = incident.id;
+      const accepted = state.acceptedCases.has(id);
+      const trauma = state.traumaActivated.has(id);
+      const arrived = state.arrivedCases.has(id);
+      document.getElementById("traumaBay").textContent = arrived ? "Arrived" : trauma ? "Active" : accepted ? "Reserved" : "Ready";
+      document.getElementById("teamStatus").textContent = trauma ? "Activated" : accepted ? "Paging" : "Standby";
+      document.getElementById("teamBar").style.width = trauma ? "100%" : accepted ? "68%" : "38%";
+      document.getElementById("bedStatus").textContent = accepted ? "3 / 6 Free" : "4 / 6 Free";
+      document.getElementById("bedBar").style.width = accepted ? "50%" : "66%";
+      document.getElementById("bloodStatus").textContent = trauma ? "2 Units Moving" : "8 Ready";
+      document.getElementById("bloodBar").style.width = trauma ? "62%" : "80%";
+    }
+
+    function updateMap(lat, lng, hospitalName) {
+      if (state.crashMarker) state.crashMarker.remove();
+      if (state.routeLine) state.routeLine.remove();
+      state.crashMarker = L.marker([lat, lng], { icon: markerIcon("SOS", "#ff3b4f") })
+        .addTo(state.map)
+        .bindPopup("Crash location");
+      state.hospitalMarker.setPopupContent(hospitalName);
+      state.routeLine = L.polyline([[lat, lng], [defaultHospital.lat, defaultHospital.lng]], {
+        color: "#ffb020",
+        weight: 4,
+        opacity: .86,
+        dashArray: "8 8"
+      }).addTo(state.map);
+      state.map.fitBounds([[lat, lng], [defaultHospital.lat, defaultHospital.lng]], { padding: [48, 48] });
+      setTimeout(() => state.map.invalidateSize(), 80);
+    }
+
+    function renderStats() {
+      const high = state.incidents.filter(i => String(i.severity || "").toUpperCase() === "HIGH").length;
+      document.getElementById("totalAlerts").textContent = state.incidents.length;
+      document.getElementById("highAlerts").textContent = high;
+      if (state.selectedId) {
+        const incident = state.incidents.find(i => String(i.id) === String(state.selectedId));
+        if (incident) renderCaseActions(incident);
+      } else {
+        document.getElementById("traumaBay").textContent = state.incidents.length ? "Active" : "Ready";
+      }
+      document.getElementById("bloodBank").textContent = high ? "O- Sent" : "O- Prep";
+    }
+
+    function renderTimeline(incident, isNew) {
+      const items = [
+        ["Crash detected", `AI confirmed ${incident.severity || "HIGH"} severity impact from phone sensor data.`],
+        ["Hospital pre-alerted", `${incident.hospital || defaultHospital.name} received location, ETA, and severity.`],
+        ["Case status", caseStatus(incident.id)],
+        ["Trauma team notified", state.traumaActivated.has(incident.id) ? "ER doctor, nursing desk, blood bank, and imaging team activated." : "ER doctor, nursing desk, blood bank, and imaging team on standby."],
+        ["Ambulance route active", state.arrivedCases.has(incident.id) ? "Patient has reached ambulance bay. Move to trauma bed." : `Patient location is live on map. ETA ${incident.eta || "4 minutes"}.`]
+      ];
+      document.getElementById("timeline").innerHTML = items.map(item => `
+        <div class="step">
+          <div class="step-dot"></div>
+          <div>
+            <h4>${item[0]}</h4>
+            <p>${item[1]}</p>
+          </div>
+        </div>
+      `).join("");
+      if (isNew) document.body.animate([{ filter: "brightness(1.35)" }, { filter: "brightness(1)" }], { duration: 450 });
+    }
+
+    async function simulateHospitalAlert() {
+      const base = {
+        lat: 23.2599 + (Math.random() - 0.5) * 0.035,
+        lng: 77.4126 + (Math.random() - 0.5) * 0.035,
+        severity: Math.random() > 0.28 ? "HIGH" : "MEDIUM",
+        timestamp: new Date().toISOString()
+      };
+
+      try {
+        await fetch(`${API_BASE}/alert`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(base)
+        });
+        refreshIncidents();
+      } catch {
+        const local = {
+          id: `LOCAL-${Date.now().toString().slice(-4)}`,
+          ...base,
+          hospital: "AIIMS Bhopal",
+          eta: `${Math.floor(Math.random() * 4) + 3} minutes`,
+          status: "local-demo"
+        };
+        state.incidents.unshift(local);
+        state.knownIds.add(local.id);
+        renderQueue();
+        renderStats();
+        selectIncident(local.id, true);
+        showToast(local);
+      }
+    }
+
+    function showToast(incident) {
+      const toast = document.getElementById("toast");
+      document.getElementById("toastText").textContent = `Case #${incident.id} - ${incident.severity || "HIGH"} severity, ETA ${incident.eta || "4 minutes"}.`;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3600);
+    }
+
+    function acceptCase() {
+      const incident = selectedIncident();
+      if (!incident) return showToast({ id: "--", severity: "No case", eta: "select an alert first" });
+      state.acceptedCases.add(incident.id);
+      renderQueue();
+      renderMainIncident(incident);
+      renderTimeline(incident, true);
+      showToast({ id: incident.id, severity: "Accepted", eta: "ER bed reserved" });
+    }
+
+    function activateTraumaTeam() {
+      const incident = selectedIncident();
+      if (!incident) return showToast({ id: "--", severity: "No case", eta: "select an alert first" });
+      state.acceptedCases.add(incident.id);
+      state.traumaActivated.add(incident.id);
+      renderQueue();
+      renderMainIncident(incident);
+      renderTimeline(incident, true);
+      showToast({ id: incident.id, severity: "Trauma team active", eta: "blood + CT ready" });
+    }
+
+    function markArrived() {
+      const incident = selectedIncident();
+      if (!incident) return showToast({ id: "--", severity: "No case", eta: "select an alert first" });
+      state.acceptedCases.add(incident.id);
+      state.traumaActivated.add(incident.id);
+      state.arrivedCases.add(incident.id);
+      renderQueue();
+      renderMainIncident(incident);
+      renderTimeline(incident, true);
+      showToast({ id: incident.id, severity: "Arrived", eta: "move to trauma bay" });
+    }
+
+    function selectedIncident() {
+      return state.incidents.find(item => String(item.id) === String(state.selectedId));
+    }
+
+    function caseStatus(id) {
+      if (state.arrivedCases.has(id)) return "Patient arrived at ambulance bay";
+      if (state.traumaActivated.has(id)) return "Trauma team activated";
+      if (state.acceptedCases.has(id)) return "Accepted by ER desk";
+      return "Awaiting hospital acknowledgement";
+    }
+
+    function formatTime(value) {
+      const date = value ? new Date(value) : new Date();
+      return date.toLocaleString("en-IN", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        day: "2-digit",
+        month: "short"
+      });
+    }
+  </script>
+</body>
+</html>

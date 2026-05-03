@@ -1,0 +1,131 @@
+[3:05:31 am] ⚡ Golden Hour AI Server v2 running → http://localhost:3000
+[3:05:31 am] 📋 Contacts: POST /add-contact | GET /contacts | DELETE /remove-contact/:id
+[3:05:31 am] 🚨 Alerts:   POST /alert | GET /status | GET /incidents | POST /cancel
+[3:05:31 am] 📱 SMS Mode: MOCK (console only)
+[3:05:46 am] 🚨 CRASH! Severity: HIGH | Loc: 23.2599, 77.4126 | ETA: 7 minutes
+[3:05:46 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:05:46 am] ⚠️  No family contacts registered.
+[3:08:25 am] 🚨 CRASH! Severity: HIGH | Loc: 23.271376392759414, 77.41348846111865 | ETA: 7 minutes
+[3:08:25 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:25 am] ⚠️  No family contacts registered.
+[3:08:28 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.269733488218723, 77.40028393210201 | ETA: 6 minutes
+[3:08:28 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:28 am] ⚠️  No family contacts registered.
+[3:08:38 am] 🚨 CRASH! Severity: HIGH | Loc: 23.248753825563522, 77.42799622227687 | ETA: 3 minutes
+[3:08:38 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:38 am] ⚠️  No family contacts registered.
+[3:08:44 am] 🚨 CRASH! Severity: HIGH | Loc: 23.243955326956474, 77.4258112900983 | ETA: 7 minutes
+[3:08:44 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:44 am] ⚠️  No family contacts registered.
+[3:08:46 am] 🚨 CRASH! Severity: HIGH | Loc: 23.25880666496352, 77.42290198726181 | ETA: 3 minutes
+[3:08:46 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:46 am] ⚠️  No family contacts registered.
+[3:08:47 am] 🚨 CRASH! Severity: HIGH | Loc: 23.250865019648558, 77.40530590927207 | ETA: 3 minutes
+[3:08:47 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:47 am] ⚠️  No family contacts registered.
+[3:08:48 am] 🚨 CRASH! Severity: HIGH | Loc: 23.263610130245414, 77.40293029465286 | ETA: 6 minutes
+[3:08:48 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:48 am] ⚠️  No family contacts registered.
+[3:08:48 am] 🚨 CRASH! Severity: HIGH | Loc: 23.267030030019058, 77.42540621516429 | ETA: 7 minutes
+[3:08:48 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:48 am] ⚠️  No family contacts registered.
+[3:08:49 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.256895715704317, 77.39736343809284 | ETA: 5 minutes
+[3:08:49 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:49 am] ⚠️  No family contacts registered.
+[3:08:49 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.271335063185365, 77.3981464654692 | ETA: 3 minutes
+[3:08:49 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:49 am] ⚠️  No family contacts registered.
+[3:08:50 am] 🚨 CRASH! Severity: HIGH | Loc: 23.26087004634541, 77.41589982963897 | ETA: 4 minutes
+[3:08:50 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:50 am] ⚠️  No family contacts registered.
+[3:08:51 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.25544080719686, 77.42875831295734 | ETA: 4 minutes
+[3:08:51 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:51 am] ⚠️  No family contacts registered.
+[3:08:52 am] 🚨 CRASH! Severity: HIGH | Loc: 23.26657081946963, 77.39865070577919 | ETA: 7 minutes
+[3:08:52 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:52 am] ⚠️  No family contacts registered.
+[3:08:53 am] 🚨 CRASH! Severity: HIGH | Loc: 23.262010210791797, 77.40066168898608 | ETA: 4 minutes
+[3:08:53 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:53 am] ⚠️  No family contacts registered.
+[3:08:54 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.261923185035165, 77.42775466844549 | ETA: 5 minutes
+[3:08:54 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:54 am] ⚠️  No family contacts registered.
+[3:08:55 am] 🚨 CRASH! Severity: HIGH | Loc: 23.26687600468746, 77.40433093848698 | ETA: 7 minutes
+[3:08:55 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:55 am] ⚠️  No family contacts registered.
+[3:08:56 am] 🚨 CRASH! Severity: HIGH | Loc: 23.242624851437846, 77.3981944273394 | ETA: 7 minutes
+[3:08:56 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:56 am] ⚠️  No family contacts registered.
+[3:08:56 am] 🚨 CRASH! Severity: HIGH | Loc: 23.256464638636114, 77.39803816366312 | ETA: 7 minutes
+[3:08:56 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:56 am] ⚠️  No family contacts registered.
+[3:08:58 am] 🚨 CRASH! Severity: HIGH | Loc: 23.252153255587878, 77.39882436151375 | ETA: 6 minutes
+[3:08:58 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:08:58 am] ⚠️  No family contacts registered.
+[3:09:00 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.248777502036614, 77.42081585299056 | ETA: 5 minutes
+[3:09:00 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:09:00 am] ⚠️  No family contacts registered.
+[3:11:24 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.2688, 77.4031 | ETA: 5 minutes
+[3:11:24 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:11:24 am] ⚠️  No family contacts registered.
+[3:18:30 am] 🚨 CRASH! Severity: HIGH | Loc: 23.252023358725342, 77.39681841821192 | ETA: 5 minutes
+[3:18:30 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:18:30 am] ⚠️  No family contacts registered.
+[3:24:18 am] 👨‍👩‍👧 Contact added: LIWLHEF (4564684644463)
+[3:24:48 am] 👨‍👩‍👧 Contact added: SOMYA (+916266573757)
+[3:25:02 am] 🚨 CRASH! Severity: HIGH | Loc: 23.2599, 77.4126 | ETA: 5 minutes
+[3:25:02 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:25:02 am] 📱 [MOCK SMS] To: 4564684644463
+[3:25:02 am]    Message: 🚨 EMERGENCY ALERT — Golden Hour AI
+Your family member was in a crash!
+
+📍 Location: https://maps.google.com/?q=23.2599,77.4126
+🕐 Time: 3:25:02 am
+⚠️ Severity: HIGH
+🚑 Status: Ambulance Dispatched to AIIMS Bhopal
+⏱ ETA: 5 minutes
+
+Stay calm. Help is on the way.
+[3:25:02 am] 📱 [MOCK SMS] To: +916266573757
+[3:25:02 am]    Message: 🚨 EMERGENCY ALERT — Golden Hour AI
+Your family member was in a crash!
+
+📍 Location: https://maps.google.com/?q=23.2599,77.4126
+🕐 Time: 3:25:02 am
+⚠️ Severity: HIGH
+🚑 Status: Ambulance Dispatched to AIIMS Bhopal
+⏱ ETA: 5 minutes
+
+Stay calm. Help is on the way.
+[3:25:02 am] 📲 Family SMS sent to 2 contacts
+[3:40:40 am] 🗑️  Contact removed: SOMYA
+[3:40:42 am] 🗑️  Contact removed: LIWLHEF
+[3:40:58 am] 👨‍👩‍👧 Contact added: somya (+916266573757)
+[3:41:14 am] 🚨 CRASH! Severity: HIGH | Loc: 23.2599, 77.4126 | ETA: 6 minutes
+[3:41:14 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[3:41:14 am] 📱 [MOCK SMS] To: +916266573757
+[3:41:14 am]    Message: 🚨 EMERGENCY ALERT — Golden Hour AI
+Your family member was in a crash!
+
+📍 Location: https://maps.google.com/?q=23.2599,77.4126
+🕐 Time: 3:41:14 am
+⚠️ Severity: HIGH
+🚑 Status: Ambulance Dispatched to AIIMS Bhopal
+⏱ ETA: 6 minutes
+
+Stay calm. Help is on the way.
+[3:41:14 am] 📲 Family SMS sent to 1 contacts
+[4:47:56 am] 🚨 CRASH! Severity: MEDIUM | Loc: 23.2599, 77.4126 | ETA: 5 minutes
+[4:47:56 am] 🏥 Hospital AIIMS Bhopal pre-alerted
+[4:47:56 am] 📱 [MOCK SMS] To: +916266573757
+[4:47:56 am]    Message: 🚨 EMERGENCY ALERT — Golden Hour AI
+Your family member was in a crash!
+
+📍 Location: https://maps.google.com/?q=23.2599,77.4126
+🕐 Time: 4:47:56 am
+⚠️ Severity: MEDIUM
+🚑 Status: Ambulance Dispatched to AIIMS Bhopal
+⏱ ETA: 5 minutes
+
+Stay calm. Help is on the way.
+[4:47:56 am] 📲 Family SMS sent to 1 contacts
