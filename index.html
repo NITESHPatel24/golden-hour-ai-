@@ -420,6 +420,18 @@
           </button>
         </div>
 
+        <!-- ENABLE REAL MOTION SENSOR (mobile only, opt-in) -->
+        <div id="motionSensorRow" style="margin-top:10px;display:none">
+          <button id="enableMotionBtn"
+            onclick="enableMotionDetection()"
+            style="width:100%;padding:10px 14px;background:rgba(0,232,122,.08);border:1px solid rgba(0,232,122,.3);border-radius:8px;color:var(--gr);font-size:12px;cursor:pointer;letter-spacing:.5px">
+            📡 Enable Real Motion Sensor (Phone Accelerometer)
+          </button>
+          <p style="font-size:10px;color:rgba(255,255,255,.35);margin:4px 0 0;text-align:center">
+            Only activates on real physical crash impact. Requires manual opt-in.
+          </p>
+        </div>
+
         <!-- ALERT LOG -->
         <div class="alert-log" id="alertLog">
           <div class="al-title">Alert Log</div>

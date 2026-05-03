@@ -55,6 +55,13 @@ document.addEventListener('DOMContentLoaded', () => {
   startPhoneMockupAnimation();
   initVoiceAssistant();
   loadContacts();
+
+  // Show "Enable Motion Sensor" button only on real mobile/tablet devices
+  const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if (isMobile && window.DeviceMotionEvent) {
+    const row = document.getElementById('motionSensorRow');
+    if (row) row.style.display = 'block';
+  }
 });
 
 // ════════════════════════════════
@@ -464,6 +471,9 @@ function cancelDemo() {
   // Hide voice panel
   const vp = document.getElementById('voicePanel');
   if (vp) vp.style.display = 'none';
+
+  // Lock out new crash triggers for 10 seconds after manual cancel
+  lastMotionCrash = Date.now();
 }
 
 function closeSOS() {
@@ -756,37 +766,80 @@ async function getServerStatus() {
 //  DEVICE MOTION (real phone)
 // ════════════════════════════════
 let lastMotionCrash = 0;
+let motionEnabled   = false;   // only active after explicit user opt-in
+
+// Running average to subtract gravity dynamically
+let gravX = 0, gravY = 0, gravZ = 9.8;
+const GRAVITY_ALPHA = 0.8;   // low-pass filter coefficient
 
 function setupDeviceMotion() {
+  motionEnabled = true;
   window.addEventListener('devicemotion', e => {
-    const a = e.accelerationIncludingGravity;
-    if (!a) return;
-    const accel = Math.sqrt((a.x||0)**2 + (a.y||0)**2 + (a.z||0)**2);
-    const speed = 0;  // real speed needs GPS integration
-    const now   = Date.now();
+    if (!motionEnabled) return;
 
-    if (accel > 8 && now - lastMotionCrash > 6000) {
+    // Prefer pure acceleration (no gravity). Fall back only if unavailable.
+    let linearAccel = e.acceleration;
+    let accel;
+
+    if (linearAccel && (linearAccel.x !== null)) {
+      // Best case: browser gives us gravity-free acceleration
+      accel = Math.sqrt(
+        (linearAccel.x || 0) ** 2 +
+        (linearAccel.y || 0) ** 2 +
+        (linearAccel.z || 0) ** 2
+      );
+    } else {
+      // Fallback: manually subtract gravity using a low-pass filter
+      const a = e.accelerationIncludingGravity;
+      if (!a) return;
+      gravX = GRAVITY_ALPHA * gravX + (1 - GRAVITY_ALPHA) * (a.x || 0);
+      gravY = GRAVITY_ALPHA * gravY + (1 - GRAVITY_ALPHA) * (a.y || 0);
+      gravZ = GRAVITY_ALPHA * gravZ + (1 - GRAVITY_ALPHA) * (a.z || 0);
+      const lx = (a.x || 0) - gravX;
+      const ly = (a.y || 0) - gravY;
+      const lz = (a.z || 0) - gravZ;
+      accel = Math.sqrt(lx ** 2 + ly ** 2 + lz ** 2);
+    }
+
+    const now = Date.now();
+
+    // Threshold: 15g linear force + 30s cooldown prevents false triggers
+    if (accel > 15 && now - lastMotionCrash > 30000) {
       lastMotionCrash = now;
       if (!APP.crashActive) {
-        handleCrashBySeverity(accel.toFixed(1), speed, (accel * 0.9).toFixed(1));
+        handleCrashBySeverity(accel.toFixed(1), 0, (accel * 0.9).toFixed(1));
         scrollToDemo();
       }
     }
   });
 }
 
-if (window.DeviceMotionEvent) {
-  if (typeof DeviceMotionEvent.requestPermission === 'function') {
-    const crashBtn = document.getElementById('crashBtn');
-    if (crashBtn) {
-      crashBtn.addEventListener('click', function iosHandler() {
-        DeviceMotionEvent.requestPermission().then(r => {
-          if (r === 'granted') setupDeviceMotion();
-        });
-        crashBtn.removeEventListener('click', iosHandler);
-      }, { once: true });
-    }
-  } else {
+// Device motion is ONLY enabled after the user explicitly clicks "Enable Motion"
+// This prevents auto-triggering on page load / phone pickup
+function enableMotionDetection() {
+  if (motionEnabled) return;
+
+  const enableBtn = document.getElementById('enableMotionBtn');
+
+  if (typeof DeviceMotionEvent?.requestPermission === 'function') {
+    // iOS 13+: must ask permission
+    DeviceMotionEvent.requestPermission()
+      .then(r => {
+        if (r === 'granted') {
+          setupDeviceMotion();
+          if (enableBtn) enableBtn.textContent = '✅ Motion Sensor Active';
+        } else {
+          if (enableBtn) enableBtn.textContent = '⛔ Permission Denied';
+        }
+      })
+      .catch(() => {
+        if (enableBtn) enableBtn.textContent = '⛔ Permission Error';
+      });
+  } else if (window.DeviceMotionEvent) {
+    // Android / non-iOS: no permission API, just start
     setupDeviceMotion();
+    if (enableBtn) enableBtn.textContent = '✅ Motion Sensor Active';
+  } else {
+    if (enableBtn) enableBtn.textContent = '⛔ Not Supported';
   }
 }
